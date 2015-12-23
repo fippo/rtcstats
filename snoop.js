@@ -125,7 +125,7 @@
         trace('onnegotiationneeded', id);
       });
       pc.addEventListener('datachannel', function(event) {
-        trace('ondatachannel', event.channel.name);
+        trace('ondatachannel', id, [event.channel.id, event.channel.label]);
       });
 
       // TODO: do we want one big interval and all peerconnections
