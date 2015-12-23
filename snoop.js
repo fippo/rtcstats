@@ -15,6 +15,7 @@
   });
   function trace() {
     //console.log.apply(console, arguments);
+    // TODO: drop getStats when not connected?
     if (buffer === null) {
       connection.emit('trace', arguments);
     } else {
@@ -30,13 +31,22 @@
       // TODO: log config + constraints without logging ice servers
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
-      var methods = ['addStream', 'removeStream',
-          'createDataChannel', 'stop'
-      ];
+
+      var methods = ['createDataChannel', 'stop'];
       methods.forEach(function(method) {
         var nativeMethod = pc[method];
         pc[method] = function() {
           trace(method, id, arguments);
+          return nativeMethod.apply(pc, arguments);
+        };
+      });
+
+      methods = ['addStream', 'removeStream'];
+      methods.forEach(function(method) {
+        var nativeMethod = pc[method];
+        pc[method] = function() {
+          var stream = arguments[0];
+          trace(method, id, stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id }));
           return nativeMethod.apply(pc, arguments);
         };
       });
@@ -96,13 +106,26 @@
         };
       });
 
-      var events = ['icecandidate', 'addstream', 'removestream',
-          'signalingstatechange', 'iceconnectionstatechange',
-          'negotiationneeded', 'datachannel'];
-      events.forEach(function (e) {
-        pc.addEventListener(e, function() {
-          trace('on' + e, id, arguments);
-        });
+      pc.addEventListener('icecandidate', function(e) {
+        trace('onicecandidate', id, e.candidate);
+      });
+      pc.addEventListener('addstream', function(e) {
+        trace('onaddstream', id, e.stream);
+      });
+      pc.addEventListener('removestream', function(e) {
+        trace('onremovestream', id, e.stream);
+      });
+      pc.addEventListener('signalingstatechange', function() {
+        trace('onsignalingstatechange', id, pc.signalingState);
+      });
+      pc.addEventListener('iceconnectionstatechange', function() {
+        trace('oniceconnectionstatechange', id, pc.iceConnectionState);
+      });
+      pc.addEventListener('negotiationneeded', function() {
+        trace('onnegotiationneeded', id);
+      });
+      pc.addEventListener('datachannel', function(event) {
+        trace('ondatachannel', event.channel.name);
       });
 
       // TODO: do we want one big interval and all peerconnections
@@ -155,7 +178,7 @@
         navigator.webkitGetUserMedia.bind(navigator) :
         navigator.mozGetUserMedia.bind(navigator);
     var gum = function() {
-      trace('getUserMedia', arguments);
+      trace('getUserMedia', null, arguments[0]);
       // TODO: hook success/failure callbacks
       return origGetUserMedia.apply(null, arguments);
     };
@@ -168,7 +191,7 @@
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     var gum2 = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function() {
-      trace('navigator.mediaDevices.getUserMedia', arguments);
+      trace('navigator.mediaDevices.getUserMedia', null, arguments[0]);
       // TODO: hook success/failure callbacks
       return gum2.apply(navigator.mediaDevices, arguments);
     };
