@@ -1,6 +1,23 @@
 (function() {
+  var getStats = require('./getstats-mangling');
+
+  var io = require('socket.io-client');
+  var connection = io.connect('https://localhost:3000/', {});
+  var buffer = [];
+  connection.on('connect', function () {
+    console.log('connected');
+    while (buffer.length) {
+      connection.emit('trace', buffer.shift());
+    }
+    buffer = null;
+  });
   function trace() {
-    console.log.apply(console, arguments);
+    //console.log.apply(console, arguments);
+    if (buffer === null) {
+      connection.emit('trace', arguments);
+    } else {
+      buffer.push(arguments);
+    }
   }
 
   if (window.webkitRTCPeerConnection || window.mozRTCPeerConnection) {
@@ -91,12 +108,13 @@
       var interval = window.setInterval(function() {
         if (isChrome) {
           pc.getStats(function(res) {
-            // TODO: apply normalization from adapter PR for chrome
-            trace('getStats', id, res);
+            trace('getStats', id, getStats(pc, res));
           });
         } else {
           pc.getStats(null, function(res) {
             trace('getStats', id, res);
+          }, function(err) {
+            console.log(err);
           });
         }
       }, 1000);
