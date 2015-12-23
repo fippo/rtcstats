@@ -179,7 +179,19 @@
         navigator.mozGetUserMedia.bind(navigator);
     var gum = function() {
       trace('getUserMedia', null, arguments[0]);
-      // TODO: hook success/failure callbacks
+      var cb = arguments[1];
+      var eb = arguments[2];
+      origGetUserMedia(arguments[0],
+        function(stream) {
+          trace('getUserMediaOnSuccess', null, 
+              stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id }));
+          if (cb) cb(stream);
+        }, 
+        function(err) {
+          trace('getUserMediaOnFailure', null, err);
+          if (eb) eb(err);
+        }
+      );
       return origGetUserMedia.apply(null, arguments);
     };
     if (navigator.webkitGetUserMedia) {
@@ -192,8 +204,15 @@
     var gum2 = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function() {
       trace('navigator.mediaDevices.getUserMedia', null, arguments[0]);
-      // TODO: hook success/failure callbacks
       return gum2.apply(navigator.mediaDevices, arguments);
+      p.then(function(stream) {
+        trace('navigator.mediaDevices.getUserMediaOnSuccess', null, 
+            stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id }));
+      });
+      p.catch(function(err) {
+        trace('navigator.mediaDevices.getUserMediaOnFailure', null, err);
+      });
+      return p;
     };
   }
   // TODO: are there events defined on MST that would allow us to listen when enabled was set?
