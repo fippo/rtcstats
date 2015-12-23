@@ -4,12 +4,14 @@
   var io = require('socket.io-client');
   var connection = io.connect('https://localhost:3000/', {});
   var buffer = [];
-  connection.on('connect', function () {
-    console.log('connected');
+  connection.on('connect', function() {
     while (buffer.length) {
       connection.emit('trace', buffer.shift());
     }
     buffer = null;
+  });
+  connection.on('disconnect', function() {
+    buffer = [];
   });
   function trace() {
     //console.log.apply(console, arguments);
@@ -25,6 +27,7 @@
     var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
     var peerconnection = function(config, constraints) {
+      // TODO: log config + constraints without logging ice servers
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
       var methods = ['addStream', 'removeStream',
@@ -152,7 +155,7 @@
         navigator.webkitGetUserMedia.bind(navigator) :
         navigator.mozGetUserMedia.bind(navigator);
     var gum = function() {
-      trace('GUM', arguments);
+      trace('getUserMedia', arguments);
       // TODO: hook success/failure callbacks
       return origGetUserMedia.apply(null, arguments);
     };
@@ -165,7 +168,7 @@
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     var gum2 = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function() {
-      trace('GUM 2', arguments);
+      trace('navigator.mediaDevices.getUserMedia', arguments);
       // TODO: hook success/failure callbacks
       return gum2.apply(navigator.mediaDevices, arguments);
     };
