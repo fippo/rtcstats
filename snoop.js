@@ -32,7 +32,7 @@
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
 
-      var methods = ['createDataChannel', 'stop'];
+      var methods = ['createDataChannel', 'close'];
       methods.forEach(function(method) {
         var nativeMethod = pc[method];
         pc[method] = function() {
@@ -192,7 +192,6 @@
           if (eb) eb(err);
         }
       );
-      return origGetUserMedia.apply(null, arguments);
     };
     if (navigator.webkitGetUserMedia) {
       navigator.webkitGetUserMedia = gum;
