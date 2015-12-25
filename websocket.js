@@ -1,10 +1,10 @@
-var socketIO = require('socket.io');
 var pem = require('pem');
-
-var io = socketIO.listen(server);
 var fs = require('fs');
-var port = parseInt(process.env.PORT, 10) || 3000;
+
+var WebSocketServer = require('ws').Server;
+
 var server = null;
+var wss = null;
 
 var db = {};
 pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
@@ -16,33 +16,42 @@ pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
         key: keys.serviceKey,
         cert: keys.certificate
     });
-    server.listen(port);
+    server.listen(3000);
+    wss = new WebSocketServer({ server: server });
 
-    var io = socketIO.listen(server);
-    io.sockets.on('connection', function(client) {
-        var referer = client.handshake.headers.referer;
-        var ua = client.handshake.headers['user-agent'];
+    wss.on('connection', function(client) {
+        var referer = client.upgradeReq.headers['origin'] + client.upgradeReq.url;
+        var ua = client.upgradeReq.headers['user-agent'];
+        var clientid = '1'; // FIXME
+        // TODO: separate origin and pathname (url)
+        console.log(referer);
 
         if (!db[referer]) db[referer] = {};
-        db[referer][client.id] = {
+        db[referer][clientid] = {
             userAgent: ua,
             peerConnections: {}
         };
 
         console.log('connected', ua, referer);
-        client.on('trace', function (data) {
+        client.on('message', function (msg) {
+            var data = JSON.parse(msg);
+            console.log(data);
             switch(data[0]) {
             case 'getStats':
-                console.log(client.id, 'getStats', data[1]);
+                console.log(clientid, 'getStats', data[1]);
+                //fs.writeFileSync('stats.json', JSON.stringify(data[2]));
+                break;
+            case 'getUserMedia':
+            case 'navigator.mediaDevices.getUserMedia':
                 break;
             default:
-                console.log(client.id, data[0], data[1], data[2]);
-                if (!db[referer][client.id].peerConnections[data[1]]) {
-                    db[referer][client.id].peerConnections[data[1]] = {
+                console.log(clientid, data[0], data[1], data[2]);
+                if (!db[referer][clientid].peerConnections[data[1]]) {
+                    db[referer][clientid].peerConnections[data[1]] = {
                         updateLog: []
                     };
                 }
-                db[referer][client.id].peerConnections[data[1]].updateLog.push({
+                db[referer][clientid].peerConnections[data[1]].updateLog.push({
                     time: new Date(),
                     type: data[0],
                     value: JSON.stringify(data[2])
