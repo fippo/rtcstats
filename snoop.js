@@ -12,7 +12,6 @@
 
   connection.onopen = function() {
     while (buffer.length) {
-      console.log('flushing');
       connection.send(JSON.stringify(buffer.shift()));
     }
   };
@@ -553,7 +552,6 @@
             remoteSource: report.remoteSource,
             ssrcIds: ['rtpstream_' + report.id, 'rtcpstream_' + report.id]
           };
-          console.log(JSON.stringify(standardReport[newId]));
           if (report.mediaType === 'audio') {
             standardReport[newId].audioLevel = report.audioLevel;
             if (report.id.indexOf('send') !== -1) {
