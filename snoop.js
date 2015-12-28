@@ -33,12 +33,17 @@
 
   if (window.webkitRTCPeerConnection || window.mozRTCPeerConnection) {
     var peerconnectioncounter = 0;
-    var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+    var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
     var peerconnection = function(config, constraints) {
-      // TODO: log config + constraints without logging ice servers
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
+
+      // don't log credentials
+      (config && config.iceServers || []).forEach(function(server) {
+        delete server.credential;
+      });
+      trace('create', id, config);
 
       var methods = ['createDataChannel', 'close'];
       methods.forEach(function(method) {
