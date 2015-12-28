@@ -12,7 +12,6 @@
 
   connection.onopen = function() {
     while (buffer.length) {
-      console.log('flushing');
       connection.send(JSON.stringify(buffer.shift()));
     }
   };
@@ -33,7 +32,7 @@
 
   if (window.webkitRTCPeerConnection || window.mozRTCPeerConnection) {
     var peerconnectioncounter = 0;
-    var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+    var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
     var peerconnection = function(config, constraints) {
       // TODO: log config + constraints without logging ice servers
@@ -548,7 +547,6 @@
             remoteSource: report.remoteSource,
             ssrcIds: ['rtpstream_' + report.id, 'rtcpstream_' + report.id]
           };
-          console.log(JSON.stringify(standardReport[newId]));
           if (report.mediaType === 'audio') {
             standardReport[newId].audioLevel = report.audioLevel;
             if (report.id.indexOf('send') !== -1) {
