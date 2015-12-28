@@ -153,7 +153,7 @@
           });
         } else {
           pc.getStats(null, function(res) {
-            trace('getStats', id, removeTimestamps(filterBoringStats(res)));
+            trace('getStats', id, filterBoringStats(res));
           }, function(err) {
             console.log(err);
           });
@@ -675,6 +675,7 @@
     return standardReport;
   }
   function removeTimestamps(standardReport) {
+    // FIXME: does not work in FF since the timestamp can't be deleted.
     Object.keys(standardReport).forEach(function(id) {
       delete standardReport[id].timestamp;
     });
