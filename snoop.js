@@ -143,12 +143,13 @@
       var interval = window.setInterval(function() {
         if (isChrome) {
           pc.getStats(function(res) {
-            trace('getStats', id, filterBoringStats(
-                removeGoogStats(mangleChromeStats(pc, res))));
+            trace('getStats', id, removeTimestamps(filterBoringStats(
+                removeGoogProperties(removeGoogTypes(
+                    mangleChromeStats(pc, res))))));
           });
         } else {
           pc.getStats(null, function(res) {
-            trace('getStats', id, filterBoringStats(res));
+            trace('getStats', id, removeTimestamps(filterBoringStats(res)));
           }, function(err) {
             console.log(err);
           });
@@ -256,10 +257,6 @@
           standardStats.remoteSource =
               standardStats.id.indexOf('recv') !== -1;
           standardStats.ssrc = parseInt(standardStats.ssrc, 10);
-          // FIXME: not defined either but I assume sequence of ssrcs
-          //  (for FEC)? Or does this contain the ids of the associated
-          //  records?!
-          standardStats.ssrcIds = [standardStats.ssrc];
 
           if (!standardStats.mediaType && standardStats.googTrackId) {
             // look up track kind in local or remote streams.
@@ -551,6 +548,7 @@
             remoteSource: report.remoteSource,
             ssrcIds: ['rtpstream_' + report.id, 'rtcpstream_' + report.id]
           };
+          console.log(JSON.stringify(standardReport[newId]));
           if (report.mediaType === 'audio') {
             standardReport[newId].audioLevel = report.audioLevel;
             if (report.id.indexOf('send') !== -1) {
@@ -635,16 +633,20 @@
     return standardReport;
   }
 
-  function removeGoogStats(standardReport) {
-    // Step x: filter nonstandard goog* types + and ssrc
-    // also remove any goog attributes.
+  function removeGoogTypes(standardReport) {
+    // Filter nonstandard goog* types, ssrc and VideoBwe.
+    Object.keys(standardReport).forEach(function(id) {
+      var type = standardReport[id].type;
+      if (type === 'ssrc' || type === 'VideoBwe' || type.indexOf('goog') === 0) {
+        delete standardReport[id];
+      }
+    });
+    return standardReport;
+  }
+  function removeGoogProperties(standardReport) {
+    // Remove any goog attributes.
     // TODO: too aggressive and removes interesting stats.
     Object.keys(standardReport).forEach(function(id) {
-      if (standardReport[id].type.indexOf('goog') === 0
-          || standardReport[id].type === 'ssrc') {
-        delete standardReport[id];
-        return;
-      }
       var report = standardReport[id];
       Object.keys(report).forEach(function(name) {
         if (name.indexOf('goog') === 0) {
@@ -666,6 +668,12 @@
         default:
           // noop
       }
+    });
+    return standardReport;
+  }
+  function removeTimestamps(standardReport) {
+    Object.keys(standardReport).forEach(function(id) {
+      delete standardReport[id].timestamp;
     });
     return standardReport;
   }
