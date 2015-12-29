@@ -237,13 +237,14 @@
   }
   // TODO: are there events defined on MST that would allow us to listen when enabled was set?
   //    no :-(
-  /*^
+  /*
   Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
     set: function(value) {
       trace('MediaStreamTrackEnable', this, value);
     }
   });
   */
+
   // taken from https://github.com/fippo/adapter/tree/getstats-mangling
   function mangleChromeStats(pc, response) {
     var standardReport = {};
@@ -639,49 +640,50 @@
     return standardReport;
   }
 
-  function removeGoogTypes(standardReport) {
+  function removeGoogTypes(results) {
     // Filter nonstandard goog* types, ssrc and VideoBwe.
-    Object.keys(standardReport).forEach(function(id) {
-      var type = standardReport[id].type;
+    Object.keys(results).forEach(function(id) {
+      var type = results[id].type;
       if (type === 'ssrc' || type === 'VideoBwe' || type.indexOf('goog') === 0) {
-        delete standardReport[id];
+        delete results[id];
       }
     });
-    return standardReport;
+    return results;
   }
-  function removeGoogProperties(standardReport) {
+  function removeGoogProperties(results) {
     // Remove any goog attributes.
     // TODO: too aggressive and removes interesting stats.
-    Object.keys(standardReport).forEach(function(id) {
-      var report = standardReport[id];
+    Object.keys(results).forEach(function(id) {
+      var report = results[id];
       Object.keys(report).forEach(function(name) {
         if (name.indexOf('goog') === 0) {
           delete report[name];
         }
       });
-      standardReport[id] = report;
+      results[id] = report;
     });
-    return standardReport;
+    return results;
   }
 
-  function filterBoringStats(standardReport) {
-    Object.keys(standardReport).forEach(function(id) {
-      switch (standardReport[id].type) {
+  function filterBoringStats(results) {
+    Object.keys(results).forEach(function(id) {
+      switch (results[id].type) {
         case 'certificate':
         case 'codec':
-          delete standardReport[id];
+          delete results[id];
           break;
         default:
           // noop
       }
     });
-    return standardReport;
+    return results;
   }
-  function removeTimestamps(standardReport) {
+
+  function removeTimestamps(results) {
     // FIXME: does not work in FF since the timestamp can't be deleted.
-    Object.keys(standardReport).forEach(function(id) {
-      delete standardReport[id].timestamp;
+    Object.keys(results).forEach(function(id) {
+      delete results[id].timestamp;
     });
-    return standardReport;
+    return results;
   }
 }());
