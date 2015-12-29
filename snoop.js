@@ -6,9 +6,12 @@
   connection.onerror = function(e) {
     console.log('WS ERROR', e);
   };
+
+  /*
   connection.onclose = function() {
     // reconnect?
   };
+  */
 
   connection.onopen = function() {
     while (buffer.length) {
@@ -16,9 +19,11 @@
     }
   };
 
-  connection.onmessage = function(/*msg*/) {
+  /*
+  connection.onmessage = function(msg) {
     // no messages from the server defined yet.
   };
+  */
 
   function trace() {
     //console.log.apply(console, arguments);
@@ -224,7 +229,7 @@
         trace('navigator.mediaDevices.getUserMediaOnSuccess', null,
             stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
       });
-      p.catch(function(err) {
+      p.then(null, function(err) {
         trace('navigator.mediaDevices.getUserMediaOnFailure', null, err);
       });
       return p;
@@ -445,8 +450,7 @@
     // Step 2: fix things spanning multiple reports.
     Object.keys(standardReport).forEach(function(id) {
       var report = standardReport[id];
-      var other;
-      var newId;
+      var other, newId, sdp;
       switch (report.type) {
         case 'googCandidatePair':
           report.type = 'candidatepair';
@@ -578,7 +582,6 @@
           // we can have multiple m-lines and codecs and different
           // payload types/parameters but unified is not supported yet.
           if (!standardReport['codec_' + report.googCodecName]) {
-            var sdp;
             // determine payload type (from offer) and negotiated (?spec)
             // parameters (from answer). (parameters not negotiated yet)
             if (pc.localDescription &&
