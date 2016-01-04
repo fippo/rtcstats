@@ -1,6 +1,6 @@
 'use strict';
 (function() {
-  var wsURL = 'wss://localhost:3000';
+  var wsURL = 'wss://localhost:3002';
   var buffer = [];
   var connection = new WebSocket(wsURL + window.location.pathname);
   connection.onerror = function(e) {
@@ -35,9 +35,9 @@
     }
   }
 
-  if (window.webkitRTCPeerConnection || window.mozRTCPeerConnection) {
+  var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
+  if (origPeerConnection) {
     var peerconnectioncounter = 0;
-    var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
     var peerconnection = function(config, constraints) {
       var id = 'PC_' + peerconnectioncounter++;
@@ -207,7 +207,7 @@
           }
         },
         function(err) {
-          trace('getUserMediaOnFailure', null, err);
+          trace('getUserMediaOnFailure', null, err.name);
           if (eb) {
             eb(err);
           }
