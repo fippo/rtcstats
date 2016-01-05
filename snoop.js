@@ -128,10 +128,10 @@
         trace('onicecandidate', id, e.candidate);
       });
       pc.addEventListener('addstream', function(e) {
-        trace('onaddstream', id, e.stream);
+        trace('onaddstream', id, e.stream.id + ' ' + e.stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
       });
       pc.addEventListener('removestream', function(e) {
-        trace('onremovestream', id, e.stream);
+        trace('onremovestream', id, e.stream.id + ' ' + e.stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
       });
       pc.addEventListener('signalingstatechange', function() {
         trace('onsignalingstatechange', id, pc.signalingState);
