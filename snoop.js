@@ -73,7 +73,12 @@
         var nativeMethod = pc[method];
         pc[method] = function() {
           var args = arguments;
-          var opts = arguments.length === 1 && typeof arguments[0] === 'object' ? arguments[0] : undefined;
+          var opts = undefined;
+          if (arguments.length === 1 && typeof arguments[0] === 'object') {
+            opts = arguments[0];
+          } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
+            opts = arguments[2];
+          }
           trace(method, id, opts);
           return new Promise(function(resolve, reject) {
             nativeMethod.apply(pc, [
