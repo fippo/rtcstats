@@ -49,10 +49,10 @@
   if (p) {
     p.then(function(devices) {
       // make things JSON-seriazable and handles format conversion.
-      var kinds = {audio: 'audioinput', video: 'videoinput', audioinput: 'audioinput', videoinput: 'videoinput'};
+      var kinds = {audio: 'audioinput', video: 'videoinput'};
       devices = devices.map(function(device) {
         return {label: device.label,
-            kind: kinds[device.kind],
+            kind: kinds[device.kind] || device.kind,
             deviceId: device.id,
             groupId: ''};
       });
