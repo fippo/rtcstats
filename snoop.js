@@ -56,7 +56,6 @@
             deviceId: device.id,
             groupId: ''};
       });
-      console.log('ENUM', JSON.stringify(devices));
       trace('enumerateDevices', null, devices);
     });
   }
