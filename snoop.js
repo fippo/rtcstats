@@ -202,6 +202,7 @@
         return {
           id: track.id,
           kind: track.kind,
+          label: track.label, // contains information about the hardware
           readyState: track.readyState
         };
       })
