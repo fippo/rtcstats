@@ -35,6 +35,32 @@
     }
   }
 
+  // snoop on available devices. This is called snoop after all!
+  var p;
+  if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+    p = navigator.mediaDevices.enumerateDevices();
+  } else if (MediaStreamTrack && mediaStreamTrack.getSource) {
+    p = new Promise(function(resolve) {
+      MediaStreamTrack.getSources(function(devices) {
+        resolve(devices);
+      });
+    });
+  }
+  if (p) {
+    p.then(function(devices) {
+      // make things JSON-seriazable and handles format conversion.
+      var kinds = {audio: 'audioinput', video: 'videoinput', audioinput: 'audioinput', videoinput: 'videoinput'};
+      devices = devices.map(function(device) {
+        return {label: device.label,
+            kind: kinds[device.kind],
+            deviceId: device.id,
+            groupId: ''};
+      });
+      console.log('ENUM', JSON.stringify(devices));
+      trace('enumerateDevices', null, devices);
+    });
+  }
+
   var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
   if (origPeerConnection) {
     var peerconnectioncounter = 0;
