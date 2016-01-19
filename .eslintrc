@@ -1,0 +1,21 @@
+{
+  "extends": "eslint-config-opentok",
+  "rules": {
+    "no-eq-null": 0,
+    "vars-on-top": 0,
+    "no-console": 0,
+    "no-alert": 0,
+    "spaced-comment": 0,
+    "valid-jsdoc": 0,
+
+    "no-use-before-define": 0,
+    "new-cap": 0,
+    "no-param-reassign": 0,
+    "consistent-this": 0,
+
+    "no-warning-comments": 0
+  },
+  "plugins": [
+    "require-path-exists"
+  ]
+}
