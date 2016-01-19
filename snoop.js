@@ -191,8 +191,10 @@
     }
     if (window.webkitRTCPeerConnection) {
       window.webkitRTCPeerConnection = peerconnection;
+      window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
     } else {
       window.mozRTCPeerConnection = peerconnection;
+      window.mozRTCPeerConnection.prototype = origPeerConnection.prototype;
     }
   }
 
@@ -242,7 +244,6 @@
       return p;
     };
   }
-  */
   // TODO: are there events defined on MST that would allow us to listen when enabled was set?
   //    no :-(
   /*
