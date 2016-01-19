@@ -546,6 +546,7 @@
             standardReport[newId].packetsSent = report.packetsSent;
             standardReport[newId].bytesSent = report.bytesSent;
             standardReport[newId].roundTripTime = report.roundTripTime;
+            standardReport[newId].packetsLost = report.packetsLost;
           } else {
             standardReport[newId].type = 'inboundrtp';
             standardReport[newId].packetsReceived = report.packetsReceived;
