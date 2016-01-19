@@ -47,6 +47,8 @@
       (config && config.iceServers || []).forEach(function(server) {
         delete server.credential;
       });
+      // TODO: log webrtc prefix here?
+      //    we need it to figure out what local type pref we have
       trace('create', id, config);
 
       var methods = ['createDataChannel', 'close'];
@@ -220,9 +222,9 @@
       );
     };
     if (navigator.webkitGetUserMedia) {
-      navigator.webkitGetUserMedia = gum;
+      navigator.webkitGetUserMedia = gum.bind(navigator);
     } else {
-      navigator.mozGetUserMedia = gum;
+      navigator.mozGetUserMedia = gum.bind(navigator);
     }
   }
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -240,6 +242,7 @@
       return p;
     };
   }
+  */
   // TODO: are there events defined on MST that would allow us to listen when enabled was set?
   //    no :-(
   /*
