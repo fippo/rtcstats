@@ -1,6 +1,6 @@
 'use strict';
 (function() {
-  var wsURL = 'wss://localhost:3002';
+  var wsURL = 'wss://snoop.tokbox.com';
   var buffer = [];
   var connection = new WebSocket(wsURL + window.location.pathname);
   connection.onerror = function(e) {
