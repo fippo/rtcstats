@@ -49,12 +49,14 @@
   if (p) {
     p.then(function(devices) {
       // make things JSON-seriazable and handles format conversion.
-      var kinds = {audio: 'audioinput', video: 'videoinput'};
+      var kinds = { audio: 'audioinput', video: 'videoinput' };
       devices = devices.map(function(device) {
-        return {label: device.label,
-            kind: kinds[device.kind] || device.kind,
-            deviceId: device.id,
-            groupId: ''};
+        return {
+          label: device.label,
+          kind: kinds[device.kind] || device.kind,
+          deviceId: device.id,
+          groupId: ''
+        };
       });
       trace('enumerateDevices', null, devices);
     });
@@ -100,7 +102,7 @@
         var nativeMethod = pc[method];
         pc[method] = function() {
           var args = arguments;
-          var opts = undefined;
+          var opts;
           if (arguments.length === 1 && typeof arguments[0] === 'object') {
             opts = arguments[0];
           } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
