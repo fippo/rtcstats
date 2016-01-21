@@ -1,0 +1,36 @@
+{
+  "name": "snoop",
+  "version": "0.0.1",
+  "description": "snoop on RTCPeerConnection",
+  "main": "snoop.js",
+  "dependencies": {
+    "pem": "^1.8.1",
+    "ws": "^0.8.1"
+  },
+  "devDependencies": {
+    "chromedriver": "^2.16.0",
+    "eslint": "^1.10.3",
+    "eslint-config-opentok": "1.0.2",
+    "eslint-plugin-require-path-exists": "^1.0.15",
+    "selenium-webdriver": "^2.48.0",
+    "tape": "^4.0.0",
+    "testling": "^1.7.1",
+    "travis-multirunner": "^3.0.0",
+    "uglify-js": "^2.6.1",
+    "webrtc-adapter-test": "^0.2.7"
+  },
+  "scripts": {
+    "test": "eslint snoop.js",
+    "dist": "uglifyjs -o min.js snoop.js",
+    "test-travis": "test/run-tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opentok/snoop.git"
+  },
+  "keywords": [
+    "webrtc",
+    "rtcpeerconnection"
+  ],
+  "author": "Philipp Hancke"
+}
