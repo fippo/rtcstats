@@ -199,6 +199,19 @@
   }
 
   // getUserMedia wrappers
+  function dumpStream(stream) {
+    return {
+      id: stream.id,
+      tracks: stream.getTracks().map(function(track) {
+        return {
+          id: track.id,
+          kind: track.kind,
+          label: track.label, // contains information about the hardware
+          readyState: track.readyState
+        };
+      })
+    };
+  }
   if (navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
     var origGetUserMedia = navigator.webkitGetUserMedia ?
         navigator.webkitGetUserMedia.bind(navigator) :
@@ -209,8 +222,9 @@
       var eb = arguments[2];
       origGetUserMedia(arguments[0],
         function(stream) {
-          trace('getUserMediaOnSuccess', null,
-              stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
+          // we log the stream id, track ids and tracks readystate since that is ended GUM fails
+          // to acquire the cam (in chrome)
+          trace('getUserMediaOnSuccess', null, dumpStream(stream));
           if (cb) {
             cb(stream);
           }
@@ -235,8 +249,7 @@
       trace('navigator.mediaDevices.getUserMedia', null, arguments[0]);
       var p = gum2.apply(navigator.mediaDevices, arguments);
       p.then(function(stream) {
-        trace('navigator.mediaDevices.getUserMediaOnSuccess', null,
-            stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
+        trace('navigator.mediaDevices.getUserMediaOnSuccess', null, dumpStream(stream));
       });
       p.then(null, function(err) {
         trace('navigator.mediaDevices.getUserMediaOnFailure', null, err);
