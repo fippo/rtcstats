@@ -1,6 +1,6 @@
 'use strict';
 (function() {
-  var wsURL = 'wss://localhost:3002';
+  var wsURL = 'wss://snoop.tokbox.com';
   var buffer = [];
   var connection = new WebSocket(wsURL + window.location.pathname);
   connection.onerror = function(e) {
@@ -72,6 +72,8 @@
       (config && config.iceServers || []).forEach(function(server) {
         delete server.credential;
       });
+      // TODO: log webrtc prefix here?
+      //    we need it to figure out what local type pref we have
       trace('create', id, config);
 
       var methods = ['createDataChannel', 'close'];
@@ -214,8 +216,10 @@
     }
     if (window.webkitRTCPeerConnection) {
       window.webkitRTCPeerConnection = peerconnection;
+      window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
     } else {
       window.mozRTCPeerConnection = peerconnection;
+      window.mozRTCPeerConnection.prototype = origPeerConnection.prototype;
     }
   }
 
@@ -245,9 +249,9 @@
       );
     };
     if (navigator.webkitGetUserMedia) {
-      navigator.webkitGetUserMedia = gum;
+      navigator.webkitGetUserMedia = gum.bind(navigator);
     } else {
-      navigator.mozGetUserMedia = gum;
+      navigator.mozGetUserMedia = gum.bind(navigator);
     }
   }
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -567,6 +571,7 @@
             standardReport[newId].packetsSent = report.packetsSent;
             standardReport[newId].bytesSent = report.bytesSent;
             standardReport[newId].roundTripTime = report.roundTripTime;
+            standardReport[newId].packetsLost = report.packetsLost;
           } else {
             standardReport[newId].type = 'inboundrtp';
             standardReport[newId].packetsReceived = report.packetsReceived;
