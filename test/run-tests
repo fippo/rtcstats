@@ -13,4 +13,4 @@ fi
 echo "Starting browser"
 PATH=$PATH:./node_modules/.bin
 
-node test/run-tests.js
+node node_modules/webrtc-adapter-test/test/run-tests.js
