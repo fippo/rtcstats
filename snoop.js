@@ -39,7 +39,7 @@
   var p;
   if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
     p = navigator.mediaDevices.enumerateDevices();
-  } else if (MediaStreamTrack && mediaStreamTrack.getSource) {
+  } else if (MediaStreamTrack && MediaStreamTrack.getSources) {
     p = new Promise(function(resolve) {
       MediaStreamTrack.getSources(function(devices) {
         resolve(devices);
