@@ -22,7 +22,7 @@
   "scripts": {
     "test": "eslint snoop.js",
     "dist": "uglifyjs -o min.js snoop.js",
-    "test-travis": "test/run-tests"
+    "test-travis": "cp test/testpage.html node_modules/webrtc-adapter-test/ && test/run-tests"
   },
   "repository": {
     "type": "git",
