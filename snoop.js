@@ -35,7 +35,7 @@
     }
   }
 
-  var origPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+  var origPeerConnection = window.webkitRTCPeerConnection || window.RTCPeerConnection || window.mozRTCPeerConnection;
   if (origPeerConnection) {
     var peerconnectioncounter = 0;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
