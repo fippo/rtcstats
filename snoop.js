@@ -49,6 +49,9 @@
       });
       // TODO: log webrtc prefix here?
       //    we need it to figure out what local type pref we have
+      config.browserType = isChrome ? 'webkit' : 'moz';
+
+      // TODO: do we want to log constraints here? They are chrome-proprietary.
       trace('create', id, config);
 
       var methods = ['createDataChannel', 'close'];
