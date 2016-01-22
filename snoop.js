@@ -49,7 +49,7 @@
       });
 
       if (!config) {
-        config = {nullConfig: true};
+        config = { nullConfig: true };
       }
       config.browserType = isChrome ? 'webkit' : 'moz';
 
