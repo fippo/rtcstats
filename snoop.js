@@ -47,8 +47,10 @@
       (config && config.iceServers || []).forEach(function(server) {
         delete server.credential;
       });
-      // TODO: log webrtc prefix here?
-      //    we need it to figure out what local type pref we have
+
+      if (!config) {
+        config = {nullConfig: true};
+      }
       config.browserType = isChrome ? 'webkit' : 'moz';
 
       // TODO: do we want to log constraints here? They are chrome-proprietary.
