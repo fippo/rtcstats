@@ -62,7 +62,7 @@
     });
   }
 
-  var origPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCPeerConnection;
+  var origPeerConnection = window.webkitRTCPeerConnection || window.RTCPeerConnection || window.mozRTCPeerConnection;
   if (origPeerConnection) {
     var peerconnectioncounter = 0;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
@@ -74,8 +74,13 @@
       (config && config.iceServers || []).forEach(function(server) {
         delete server.credential;
       });
-      // TODO: log webrtc prefix here?
-      //    we need it to figure out what local type pref we have
+
+      if (!config) {
+        config = { nullConfig: true };
+      }
+      config.browserType = isChrome ? 'webkit' : 'moz';
+
+      // TODO: do we want to log constraints here? They are chrome-proprietary.
       trace('create', id, config);
 
       var methods = ['createDataChannel', 'close'];
@@ -219,6 +224,9 @@
     if (window.webkitRTCPeerConnection) {
       window.webkitRTCPeerConnection = peerconnection;
       window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
+    } else if (window.RTCPeerConnection) {
+      window.RTCPeerConnection = peerconnection;
+      window.RTCPeerConnection.prototype = origPeerConnection.prototype;
     } else {
       window.mozRTCPeerConnection = peerconnection;
       window.mozRTCPeerConnection.prototype = origPeerConnection.prototype;
@@ -226,6 +234,19 @@
   }
 
   // getUserMedia wrappers
+  function dumpStream(stream) {
+    return {
+      id: stream.id,
+      tracks: stream.getTracks().map(function(track) {
+        return {
+          id: track.id,
+          kind: track.kind,
+          label: track.label, // contains information about the hardware
+          readyState: track.readyState
+        };
+      })
+    };
+  }
   if (navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
     var origGetUserMedia = navigator.webkitGetUserMedia ?
         navigator.webkitGetUserMedia.bind(navigator) :
@@ -236,8 +257,9 @@
       var eb = arguments[2];
       origGetUserMedia(arguments[0],
         function(stream) {
-          trace('getUserMediaOnSuccess', null,
-              stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
+          // we log the stream id, track ids and tracks readystate since that is ended GUM fails
+          // to acquire the cam (in chrome)
+          trace('getUserMediaOnSuccess', null, dumpStream(stream));
           if (cb) {
             cb(stream);
           }
@@ -262,8 +284,7 @@
       trace('navigator.mediaDevices.getUserMedia', null, arguments[0]);
       var p = gum2.apply(navigator.mediaDevices, arguments);
       p.then(function(stream) {
-        trace('navigator.mediaDevices.getUserMediaOnSuccess', null,
-            stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
+        trace('navigator.mediaDevices.getUserMediaOnSuccess', null, dumpStream(stream));
       });
       p.then(null, function(err) {
         trace('navigator.mediaDevices.getUserMediaOnFailure', null, err);
