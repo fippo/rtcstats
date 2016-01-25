@@ -273,6 +273,7 @@
           for (var j = 0; j < tracks.length; j++) {
             if (tracks[j].id === standardStats.googTrackId) {
               standardStats.mediaType = tracks[j].kind;
+              report.mediaType = tracks[j].kind;
             }
           }
         }
