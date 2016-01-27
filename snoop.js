@@ -1,6 +1,6 @@
 'use strict';
 (function() {
-  var wsURL = 'wss://snoop.tokbox.com/';
+  var wsURL = 'wss://localhost:3000/';
   var buffer = [];
   var connection = new WebSocket(wsURL + window.location.pathname);
   connection.onerror = function(e) {
@@ -53,8 +53,11 @@
       }
       config.browserType = isChrome ? 'webkit' : 'moz';
 
-      // TODO: do we want to log constraints here? They are chrome-proprietary.
       trace('create', id, config);
+      // TODO: do we want to log constraints here? They are chrome-proprietary.
+      if (constraints) {
+        trace('constraints', id, constraints);
+      }
 
       var methods = ['createDataChannel', 'close'];
       methods.forEach(function(method) {
