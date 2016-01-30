@@ -53,8 +53,11 @@
       }
       config.browserType = isChrome ? 'webkit' : 'moz';
 
-      // TODO: do we want to log constraints here? They are chrome-proprietary.
       trace('create', id, config);
+      // TODO: do we want to log constraints here? They are chrome-proprietary.
+      if (constraints) {
+        trace('constraints', id, constraints);
+      }
 
       var methods = ['createDataChannel', 'close'];
       methods.forEach(function(method) {
