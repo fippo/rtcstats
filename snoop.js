@@ -300,7 +300,8 @@
         }
       });
     });
-    newStats.timeStamps = new Date();
+    // TODO: moving the timestamp to the top-level is not compression but...
+    newStats.timestamp = new Date();
     return newStats;
   }
 
