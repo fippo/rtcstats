@@ -83,7 +83,7 @@
         var nativeMethod = pc[method];
         pc[method] = function() {
           var args = arguments;
-          var opts = undefined;
+          var opts;
           if (arguments.length === 1 && typeof arguments[0] === 'object') {
             opts = arguments[0];
           } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
@@ -164,14 +164,21 @@
       // TODO: do we want one big interval and all peerconnections
       //    queried in that or one setInterval per PC?
       //    we have to collect results anyway so...
+      var prev = {};
       var interval = window.setInterval(function() {
         if (isChrome) {
           pc.getStats(function(res) {
-            trace('getStats', id, mangleChromeStats(pc, res));
+            var now = mangleChromeStats(pc, res);
+            var base = JSON.parse(JSON.stringify(now)); // our new prev
+            trace('getstats', id, deltaCompression(prev, now));
+            prev = base;
           });
         } else {
           pc.getStats(null, function(res) {
-            trace('getStats', id, res);
+            var now = res;
+            var base = JSON.parse(JSON.stringify(now)); // our new prev
+            trace('getstats', id, deltaCompression(prev, now));
+            prev = base;
           }, function(err) {
             console.log(err);
           });
@@ -275,6 +282,28 @@
     }
   });
   */
+  // apply a delta compression to the stats report. Reduces size by ~90%.
+  // To reduce further, report keys could be compressed.
+  function deltaCompression(oldStats, newStats) {
+    Object.keys(newStats).forEach(function(id) {
+      if (!oldStats[id]) {
+        return;
+      }
+      var report = newStats[id];
+      Object.keys(report).forEach(function(name) {
+        if (report[name] === oldStats[id][name]) {
+          delete newStats[id][name];
+        }
+        delete report.timestamp;
+        if (Object.keys(report).length === 0) {
+          delete newStats[id];
+        }
+      });
+    });
+    // TODO: moving the timestamp to the top-level is not compression but...
+    newStats.timestamp = new Date();
+    return newStats;
+  }
 
   function mangleChromeStats(pc, response) {
     var standardReport = {};
