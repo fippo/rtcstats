@@ -261,7 +261,7 @@
         trace('navigator.mediaDevices.getUserMediaOnSuccess', null, dumpStream(stream));
       });
       p.then(null, function(err) {
-        trace('navigator.mediaDevices.getUserMediaOnFailure', null, err);
+        trace('navigator.mediaDevices.getUserMediaOnFailure', null, err.name);
       });
       return p;
     };
