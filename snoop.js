@@ -157,8 +157,8 @@
       pc.addEventListener('negotiationneeded', function() {
         trace('onnegotiationneeded', id);
       });
-      pc.addEventListener('datachannel', function(event) {
-        trace('ondatachannel', id, [event.channel.id, event.channel.label]);
+      pc.addEventListener('datachannel', function(e) {
+        trace('ondatachannel', id, [e.channel.id, e.channel.label]);
       });
 
       // TODO: do we want one big interval and all peerconnections
@@ -196,9 +196,7 @@
     if (origPeerConnection.generateCertificate) {
       Object.defineProperty(peerconnection, 'generateCertificate', {
         get: function() {
-          return arguments.length ?
-              origPeerConnection.generateCertificate.apply(null, arguments)
-              : origPeerConnection.generateCertificate;
+          return origPeerConnection.generateCertificate;
         }
       });
     }
