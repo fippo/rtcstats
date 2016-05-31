@@ -1,8 +1,9 @@
 'use strict';
 (function() {
   var wsURL = 'wss://rtcstats.tokbox.com/';
+  var PROTOCOL_VERSION = '1.0';
   var buffer = [];
-  var connection = new WebSocket(wsURL + window.location.pathname);
+  var connection = new WebSocket(wsURL + window.location.pathname, PROTOCOL_VERSION);
   connection.onerror = function(e) {
     console.log('WS ERROR', e);
   };

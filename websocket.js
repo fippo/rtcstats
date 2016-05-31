@@ -16,8 +16,17 @@ pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
         key: keys.serviceKey,
         cert: keys.certificate
     });
+    var PROTOCOL_VERSION = '1.0';
+
     server.listen(3000);
-    wss = new WebSocketServer({ server: server });
+    var handleProtocols = function (protocols, cb) {
+        // https://github.com/websockets/ws/blob/master/doc/ws.md#optionshandleprotocols
+        // Accept any protocol version and notify the client we will use
+        // PROTOCOL_VERSION
+        cb(true, PROTOCOL_VERSION);
+    };
+
+    wss = new WebSocketServer({ server: server, handleProtocols: handleProtocols });
 
     wss.on('connection', function(client) {
         var referer = client.upgradeReq.headers['origin'] + client.upgradeReq.url;
