@@ -1,5 +1,6 @@
-'use strict';
 (function() {
+  'use strict';
+
   var wsURL = 'wss://rtcstats.tokbox.com/';
   var buffer = [];
   var connection = new WebSocket(wsURL + window.location.pathname);
