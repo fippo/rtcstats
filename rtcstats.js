@@ -56,6 +56,7 @@
 
       trace('create', id, config);
       // TODO: do we want to log constraints here? They are chrome-proprietary.
+      // http://stackoverflow.com/questions/31003928/what-do-each-of-these-experimental-goog-rtcpeerconnectionconstraints-do
       if (constraints) {
         trace('constraints', id, constraints);
       }
@@ -221,10 +222,12 @@
       id: stream.id,
       tracks: stream.getTracks().map(function(track) {
         return {
-          id: track.id,
-          kind: track.kind,
-          label: track.label, // contains information about the hardware
-          readyState: track.readyState
+          id: track.id,                // unique identifier (GUID) for the track
+          kind: track.kind,            // `audio` or `video`
+          label: track.label,          // identified the track source
+          enabled: track.enabled,      // application can control it
+          muted: track.muted,          // application cannot control it (read-only)
+          readyState: track.readyState // `live` or `ended`
         };
       })
     };
