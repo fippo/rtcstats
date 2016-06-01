@@ -72,10 +72,13 @@
       methods = ['addStream', 'removeStream'];
       methods.forEach(function(method) {
         var nativeMethod = pc[method];
-        pc[method] = function() {
-          var stream = arguments[0];
-          trace(method, id, stream.id + ' ' + stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
-          return nativeMethod.apply(pc, arguments);
+        pc[method] = function(stream) {
+          var streamInfo = stream.getTracks().map(function(t) {
+            return t.kind + ':' + t.id;
+          });
+
+          trace(method, id, stream.id + ' ' + streamInfo);
+          return nativeMethod.call(pc, stream);
         };
       });
 
