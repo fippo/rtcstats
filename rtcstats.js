@@ -1,5 +1,5 @@
+'use strict';
 (function() {
-  'use strict';
 
   var wsURL = 'wss://rtcstats.tokbox.com/';
   var PROTOCOL_VERSION = '1.0';
