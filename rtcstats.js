@@ -295,6 +295,7 @@
   // apply a delta compression to the stats report. Reduces size by ~90%.
   // To reduce further, report keys could be compressed.
   function deltaCompression(oldStats, newStats) {
+    newStats = JSON.parse(JSON.stringify(newStats));
     Object.keys(newStats).forEach(function(id) {
       if (!oldStats[id]) {
         return;
