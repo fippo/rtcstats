@@ -30,11 +30,12 @@
   function trace() {
     //console.log.apply(console, arguments);
     // TODO: drop getStats when not connected?
-    arguments.push(new Date().getTime());
+    var args = Array.prototype.slice.call(arguments);
+    args.push(new Date().getTime());
     if (connection.readyState === 1) {
-      connection.send(JSON.stringify(arguments));
+      connection.send(JSON.stringify(args));
     } else {
-      buffer.push(arguments);
+      buffer.push(args);
     }
   }
 
