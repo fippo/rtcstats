@@ -47,6 +47,7 @@
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
 
+      config = JSON.parse(JSON.stringify(config)); // deepcopy
       // don't log credentials
       (config && config.iceServers || []).forEach(function(server) {
         delete server.credential;
