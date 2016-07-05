@@ -56,7 +56,11 @@
       if (!config) {
         config = { nullConfig: true };
       }
+
       config.browserType = isChrome ? 'webkit' : 'moz';
+      if (window.RTCIceGatherer) {
+        config.browserType = 'edge';
+      }
 
       trace('create', id, config);
       // TODO: do we want to log constraints here? They are chrome-proprietary.
