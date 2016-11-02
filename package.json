@@ -8,11 +8,12 @@
     "ws": "^0.8.1"
   },
   "devDependencies": {
-    "chromedriver": "^2.16.0",
+    "chromedriver": "^2.21.2",
+    "geckodriver": "^1.1.3",
     "eslint": "^1.10.3",
     "eslint-config-opentok": "1.0.2",
     "eslint-plugin-require-path-exists": "^1.0.15",
-    "selenium-webdriver": "^2.48.0",
+    "selenium-webdriver": "^3.0.0-beta-3",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
