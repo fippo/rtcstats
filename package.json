@@ -13,12 +13,12 @@
     "eslint": "^1.10.3",
     "eslint-config-opentok": "1.0.2",
     "eslint-plugin-require-path-exists": "^1.0.15",
-    "selenium-webdriver": "^3.0.0-beta-3",
+    "selenium-webdriver": "^3.0.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.6.1",
-    "webrtc-adapter": "^2.0.0"
+    "webrtc-adapter": "^2.0.6"
   },
   "scripts": {
     "test": "eslint rtcstats.js",
