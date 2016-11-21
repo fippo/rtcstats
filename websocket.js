@@ -1,91 +1,114 @@
-var pem = require('pem');
+'use strict';
 var fs = require('fs');
+var uuid = require('uuid');
+var obfuscate = require('./obfuscator');
+var os = require('os');
 
 var WebSocketServer = require('ws').Server;
 
-var server = null;
 var wss = null;
 
-var db = {};
-pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
-    if (err) {
-        console.err('error creating cert', err);
-        return;
+var server;
+var tempPath = 'temp';
+
+function setupWorkDirectory() {
+    try {
+        fs.readdirSync(tempPath).forEach(function(fname) {
+            fs.unlinkSync(tempPath + '/' + fname);
+        });
+        fs.rmdirSync(tempPath);
+    } catch(e) {
+        console.error('work dir ' + tempPath + ' does not exist, please create it');
     }
-    server = require('https').Server({
-        key: keys.serviceKey,
-        cert: keys.certificate
+    fs.mkdirSync(tempPath);
+}
+
+function run(keys) {
+    setupWorkDirectory();
+
+    if (keys === undefined) {
+      server = require('http').Server(() => { });
+    } else {
+      server = require('https').Server({
+          key: keys.serviceKey,
+          cert: keys.certificate,
+      }, () => { });
+    }
+
+    server.listen(8000);
+    server.on('request', function(request, response) {
+        // look at request.url
+        switch (request.url) {
+        case "/healthcheck":
+            response.writeHead(200);
+            response.end();
+            return;
+        default:
+            response.writeHead(404);
+            response.end();
+        }
     });
-    var PROTOCOL_VERSION = '1.0';
 
-    server.listen(3000);
-    var handleProtocols = function (protocols, cb) {
-        // https://github.com/websockets/ws/blob/master/doc/ws.md#optionshandleprotocols
-        // Accept any protocol version and notify the client we will use
-        // PROTOCOL_VERSION
-        cb(true, PROTOCOL_VERSION);
-    };
-
-    wss = new WebSocketServer({ server: server, handleProtocols: handleProtocols });
+    wss = new WebSocketServer({ server: server });
 
     wss.on('connection', function(client) {
+        // the url the client is coming from
         var referer = client.upgradeReq.headers['origin'] + client.upgradeReq.url;
-        var ua = client.upgradeReq.headers['user-agent'];
-        var clientid = '1'; // FIXME
-        // TODO: separate origin and pathname (url)
-        console.log(referer);
+        // TODO: check against known/valid urls
 
-        if (!db[referer]) db[referer] = {};
-        db[referer][clientid] = {
+        var ua = client.upgradeReq.headers['user-agent'];
+        var clientid = uuid.v4();
+        var tempStream = fs.createWriteStream(tempPath + '/' + clientid);
+        tempStream.on('finish', function() {
+            // do something like processing the file and extracting the data.
+            console.log('finished gathering data in ' + tempPath + '/' + clientid);
+        });
+
+        var meta = {
+            path: client.upgradeReq.url,
+            origin: client.upgradeReq.headers['origin'],
+            url: referer,
             userAgent: ua,
-            peerConnections: {}
+            time: Date.now()
         };
+        tempStream.write(JSON.stringify(meta) + '\n');
 
         console.log('connected', ua, referer);
         client.on('message', function (msg) {
             var data = JSON.parse(msg);
-            console.log(data);
             switch(data[0]) {
-            case 'getStats':
-                console.log(clientid, 'getStats', data[1]);
-                //fs.writeFileSync('stats.json', JSON.stringify(data[2]));
-                break;
             case 'getUserMedia':
+            case 'getUserMediaOnSuccess':
+            case 'getUserMediaOnFailure':
             case 'navigator.mediaDevices.getUserMedia':
+            case 'navigator.mediaDevices.getUserMediaOnSuccess':
+            case 'navigator.mediaDevices.getUserMediaOnFailure':
+                data.time = Date.now();
+                tempStream.write(JSON.stringify(data) + '\n');
                 break;
             default:
-                console.log(clientid, data[0], data[1], data[2]);
-                if (!db[referer][clientid].peerConnections[data[1]]) {
-                    db[referer][clientid].peerConnections[data[1]] = {
-                        updateLog: []
-                    };
-                }
-                db[referer][clientid].peerConnections[data[1]].updateLog.push({
-                    time: new Date(),
-                    type: data[0],
-                    value: JSON.stringify(data[2])
-                });
+                obfuscate(data);
+                data.time = Date.now();
+                tempStream.write(JSON.stringify(data) + '\n');
                 break;
             }
         });
-    });
-});
 
-process.on('SIGINT', function() {
-    var silly = {
-        PeerConnections: {}
-    };
-    Object.keys(db).forEach(function(origin) {
-        Object.keys(db[origin]).forEach(function(clientid) {
-            var client = db[origin][clientid];
-            Object.keys(client.peerConnections).forEach(function(connid) {
-                var conn = client.peerConnections[connid];
-                silly.PeerConnections[origin + '#' + clientid + '_' + connid] = {
-                    updateLog: conn.updateLog
-                };
-            });
+        client.on('close', function() {
+            tempStream.end();
+            tempStream = null;
         });
     });
-    fs.writeFileSync('dump.json', JSON.stringify(silly));
-    process.exit();
-});
+}
+
+function stop() {
+    if (server) {
+        server.close();
+    }
+}
+
+run();
+
+module.exports = {
+    stop: stop
+};

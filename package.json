@@ -4,7 +4,7 @@
   "description": "RTC Stats for WebRTC",
   "main": "rtcstats.js",
   "dependencies": {
-    "pem": "^1.8.1",
+    "uuid": "^2.0.3",
     "ws": "^0.8.1"
   },
   "devDependencies": {
