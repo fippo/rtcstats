@@ -1,5 +1,17 @@
 'use strict';
 (function() {
+  // transforms a maplike to an object. Mostly for getStats +
+  // JSON.parse(JSON.stringify())
+  function map2obj(m) {
+    if (!m.entries) {
+      return m;
+    }
+    var o = {};
+    m.forEach(function(v, k) {
+      o[k] = v;
+    });
+    return o;
+  }
 
   var wsURL = 'wss://rtcstats.tokbox.com/';
   var PROTOCOL_VERSION = '1.0';
@@ -188,7 +200,7 @@
           });
         } else {
           pc.getStats(null, function(res) {
-            var now = res;
+            var now = map2obj(res);
             var base = JSON.parse(JSON.stringify(now)); // our new prev
             trace('getstats', id, deltaCompression(prev, now));
             prev = base;
