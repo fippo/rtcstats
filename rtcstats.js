@@ -300,15 +300,7 @@
       return p;
     };
   }
-  // TODO: are there events defined on MST that would allow us to listen when enabled was set?
-  //    no :-(
-  /*
-  Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
-    set: function(value) {
-      trace('MediaStreamTrackEnable', this, value);
-    }
-  });
-  */
+
   // apply a delta compression to the stats report. Reduces size by ~90%.
   // To reduce further, report keys could be compressed.
   function deltaCompression(oldStats, newStats) {
@@ -387,4 +379,19 @@
     return results;
   }
   */
+
+  // listen for MediaStreamTrack.enabled = true|false which is often used for muting.
+  if (window.MediaStreamTrack) {
+    var origMSTEnabled = Object.getOwnPropertyDescriptor(MediaStreamTrack.prototype, 'enabled');
+    Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+      set: function(value) {
+        trace('MediaStreamTrackEnable', null, {
+          track: this.id,
+          enabled: value,
+          kind: this.kind
+        });
+        origMSTEnabled.set.call(this, value);
+      }
+    });
+  }
 }());
