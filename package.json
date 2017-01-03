@@ -8,21 +8,22 @@
     "ws": "^0.8.1"
   },
   "devDependencies": {
-    "chromedriver": "^2.16.0",
+    "chromedriver": "^2.21.2",
+    "geckodriver": "^1.1.3",
     "eslint": "^1.10.3",
     "eslint-config-opentok": "1.0.2",
     "eslint-plugin-require-path-exists": "^1.0.15",
-    "selenium-webdriver": "^2.48.0",
+    "selenium-webdriver": "^3.0.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.6.1",
-    "webrtc-adapter-test": "^0.2.7"
+    "webrtc-adapter": "^2.0.6"
   },
   "scripts": {
     "test": "eslint rtcstats.js",
     "dist": "uglifyjs -o min.js rtcstats.js",
-    "test-travis": "cp test/testpage.html node_modules/webrtc-adapter-test/ && test/run-tests"
+    "test-travis": "cp test/testpage.html node_modules/webrtc-adapter/ && test/run-tests"
   },
   "repository": {
     "type": "git",
