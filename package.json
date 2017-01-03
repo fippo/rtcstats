@@ -9,9 +9,13 @@
   },
   "devDependencies": {
     "chromedriver": "^2.16.0",
-    "eslint": "^1.10.3",
-    "eslint-config-opentok": "1.0.2",
-    "eslint-plugin-require-path-exists": "^1.0.15",
+    "eslint": "^3.12.2",
+    "eslint-config-airbnb": "^13.0.0",
+    "eslint-config-airbnb-base": "^11.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.8.0",
+    "eslint-plugin-require-path-exists": "^1.1.5",
     "selenium-webdriver": "^2.48.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
@@ -20,7 +24,7 @@
     "webrtc-adapter-test": "^0.2.7"
   },
   "scripts": {
-    "test": "eslint rtcstats.js",
+    "test": "./node_modules/.bin/eslint rtcstats.js",
     "dist": "uglifyjs -o min.js rtcstats.js",
     "test-travis": "cp test/testpage.html node_modules/webrtc-adapter-test/ && test/run-tests"
   },

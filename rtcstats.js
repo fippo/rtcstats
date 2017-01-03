@@ -1,4 +1,5 @@
 'use strict';
+
 (function() {
   // transforms a maplike to an object. Mostly for getStats +
   // JSON.parse(JSON.stringify())
@@ -11,6 +12,61 @@
       o[k] = v;
     });
     return o;
+  }
+
+  // apply a delta compression to the stats report. Reduces size by ~90%.
+  // To reduce further, report keys could be compressed.
+  function deltaCompression(oldStats, newStats) {
+    newStats = JSON.parse(JSON.stringify(newStats));
+    Object.keys(newStats).forEach(function(id) {
+      if (!oldStats[id]) {
+        return;
+      }
+      var report = newStats[id];
+      Object.keys(report).forEach(function(name) {
+        if (report[name] === oldStats[id][name]) {
+          delete newStats[id][name];
+        }
+        delete report.timestamp;
+        if (Object.keys(report).length === 0) {
+          delete newStats[id];
+        }
+      });
+    });
+    // TODO: moving the timestamp to the top-level is not compression but...
+    newStats.timestamp = new Date();
+    return newStats;
+  }
+
+  function mangleChromeStats(pc, response) {
+    var standardReport = {};
+    var reports = response.result();
+    reports.forEach(function(report) {
+      var standardStats = {
+        id: report.id,
+        timestamp: report.timestamp.getTime(),
+        type: report.type,
+      };
+      report.names().forEach(function(name) {
+        standardStats[name] = report.stat(name);
+      });
+      // backfill mediaType -- until https://codereview.chromium.org/1307633007/ lands.
+      if (report.type === 'ssrc' && !standardStats.mediaType && standardStats.googTrackId) {
+        // look up track kind in local or remote streams.
+        var streams = pc.getRemoteStreams().concat(pc.getLocalStreams());
+        for (var i = 0; i < streams.length && !standardStats.mediaType; i++) {
+          var tracks = streams[i].getTracks();
+          for (var j = 0; j < tracks.length; j++) {
+            if (tracks[j].id === standardStats.googTrackId) {
+              standardStats.mediaType = tracks[j].kind;
+              report.mediaType = tracks[j].kind;
+            }
+          }
+        }
+      }
+      standardReport[standardStats.id] = standardStats;
+    });
+    return standardReport;
   }
 
   var wsURL = 'wss://rtcstats.tokbox.com/';
@@ -51,7 +107,8 @@
     }
   }
 
-  var origPeerConnection = window.webkitRTCPeerConnection || window.RTCPeerConnection || window.mozRTCPeerConnection;
+  var origPeerConnection = window.webkitRTCPeerConnection ||
+    window.RTCPeerConnection || window.mozRTCPeerConnection;
   if (origPeerConnection) {
     var peerconnectioncounter = 0;
     var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
@@ -61,7 +118,7 @@
 
       config = JSON.parse(JSON.stringify(config)); // deepcopy
       // don't log credentials
-      (config && config.iceServers || []).forEach(function(server) {
+      ((config && config.iceServers) || []).forEach(function(server) {
         delete server.credential;
       });
 
@@ -131,7 +188,7 @@
                   args[1].apply(null, [err]);
                 }
               },
-              opts
+              opts,
             ]);
           });
         };
@@ -145,21 +202,21 @@
           trace(method, id, args[0]);
           return new Promise(function(resolve, reject) {
             nativeMethod.apply(pc, [args[0],
-                function() {
-                  trace(method + 'OnSuccess', id);
-                  resolve();
-                  if (args.length >= 2) {
-                    args[1].apply(null, []);
-                  }
-                },
-                function(err) {
-                  trace(method + 'OnFailure', id, err);
-                  reject(err);
-                  if (args.length >= 3) {
-                    args[2].apply(null, [err]);
-                  }
-                }]
-              );
+              function() {
+                trace(method + 'OnSuccess', id);
+                resolve();
+                if (args.length >= 2) {
+                  args[1].apply(null, []);
+                }
+              },
+              function(err) {
+                trace(method + 'OnFailure', id, err);
+                reject(err);
+                if (args.length >= 3) {
+                  args[2].apply(null, [err]);
+                }
+              }],
+            );
           });
         };
       });
@@ -224,7 +281,7 @@
           return arguments.length ?
               origPeerConnection.generateCertificate.apply(null, arguments)
               : origPeerConnection.generateCertificate;
-        }
+        },
       });
     }
     if (window.webkitRTCPeerConnection) {
@@ -245,14 +302,14 @@
       id: stream.id,
       tracks: stream.getTracks().map(function(track) {
         return {
-          id: track.id,                // unique identifier (GUID) for the track
-          kind: track.kind,            // `audio` or `video`
-          label: track.label,          // identified the track source
-          enabled: track.enabled,      // application can control it
-          muted: track.muted,          // application cannot control it (read-only)
-          readyState: track.readyState // `live` or `ended`
+          id: track.id,                 // unique identifier (GUID) for the track
+          kind: track.kind,             // `audio` or `video`
+          label: track.label,           // identified the track source
+          enabled: track.enabled,       // application can control it
+          muted: track.muted,           // application cannot control it (read-only)
+          readyState: track.readyState, // `live` or `ended`
         };
-      })
+      }),
     };
   }
   if (navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
@@ -277,7 +334,7 @@
           if (eb) {
             eb(err);
           }
-        }
+        },
       );
     };
     if (navigator.webkitGetUserMedia) {
@@ -309,60 +366,6 @@
     }
   });
   */
-  // apply a delta compression to the stats report. Reduces size by ~90%.
-  // To reduce further, report keys could be compressed.
-  function deltaCompression(oldStats, newStats) {
-    newStats = JSON.parse(JSON.stringify(newStats));
-    Object.keys(newStats).forEach(function(id) {
-      if (!oldStats[id]) {
-        return;
-      }
-      var report = newStats[id];
-      Object.keys(report).forEach(function(name) {
-        if (report[name] === oldStats[id][name]) {
-          delete newStats[id][name];
-        }
-        delete report.timestamp;
-        if (Object.keys(report).length === 0) {
-          delete newStats[id];
-        }
-      });
-    });
-    // TODO: moving the timestamp to the top-level is not compression but...
-    newStats.timestamp = new Date();
-    return newStats;
-  }
-
-  function mangleChromeStats(pc, response) {
-    var standardReport = {};
-    var reports = response.result();
-    reports.forEach(function(report) {
-      var standardStats = {
-        id: report.id,
-        timestamp: report.timestamp.getTime(),
-        type: report.type
-      };
-      report.names().forEach(function(name) {
-        standardStats[name] = report.stat(name);
-      });
-      // backfill mediaType -- until https://codereview.chromium.org/1307633007/ lands.
-      if (report.type === 'ssrc' && !standardStats.mediaType && standardStats.googTrackId) {
-        // look up track kind in local or remote streams.
-        var streams = pc.getRemoteStreams().concat(pc.getLocalStreams());
-        for (var i = 0; i < streams.length && !standardStats.mediaType; i++) {
-          var tracks = streams[i].getTracks();
-          for (var j = 0; j < tracks.length; j++) {
-            if (tracks[j].id === standardStats.googTrackId) {
-              standardStats.mediaType = tracks[j].kind;
-              report.mediaType = tracks[j].kind;
-            }
-          }
-        }
-      }
-      standardReport[standardStats.id] = standardStats;
-    });
-    return standardReport;
-  }
 
   /*
   function filterBoringStats(results) {
