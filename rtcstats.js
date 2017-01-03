@@ -387,4 +387,8 @@
     return results;
   }
   */
+
+  window.rtcstats = {
+    trace: trace,
+  };
 }());
