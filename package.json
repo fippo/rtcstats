@@ -17,12 +17,12 @@
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.6.1",
-    "webrtc-adapter-test": "^0.2.7"
+    "webrtc-adapter": "^2.1.0"
   },
   "scripts": {
     "test": "eslint rtcstats.js",
     "dist": "uglifyjs -o min.js rtcstats.js",
-    "test-travis": "cp test/testpage.html node_modules/webrtc-adapter-test/ && test/run-tests"
+    "test-travis": "cp test/testpage.html node_modules/webrtc-adapter/test/ && test/run-tests"
   },
   "repository": {
     "type": "git",
