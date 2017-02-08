@@ -107,11 +107,11 @@
     }
   }
 
-  var origPeerConnection = window.webkitRTCPeerConnection ||
-    window.RTCPeerConnection || window.mozRTCPeerConnection;
+  var origPeerConnection = window.RTCPeerConnection ||
+    window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
   if (origPeerConnection) {
     var peerconnectioncounter = 0;
-    var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
+    var isChrome = !!window.webkitRTCPeerConnection;
     var peerconnection = function(config, constraints) {
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
@@ -284,13 +284,14 @@
         },
       });
     }
-    if (window.webkitRTCPeerConnection) {
-      window.webkitRTCPeerConnection = peerconnection;
-      window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
-    } else if (window.RTCPeerConnection) {
+
+    if (origPeerConnection === window.RTCPeerConnection) {
       window.RTCPeerConnection = peerconnection;
       window.RTCPeerConnection.prototype = origPeerConnection.prototype;
-    } else {
+    } else if (origPeerConnection === window.webkitRTCPeerConnection) {
+      window.webkitRTCPeerConnection = peerconnection;
+      window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
+    } else if (origPeerConnection === window.mozRTCPeerConnection) {
       window.mozRTCPeerConnection = peerconnection;
       window.mozRTCPeerConnection.prototype = origPeerConnection.prototype;
     }
