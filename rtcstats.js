@@ -107,11 +107,13 @@
     }
   }
 
-  var origPeerConnection = window.RTCPeerConnection ||
-    window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-  if (origPeerConnection) {
-    var peerconnectioncounter = 0;
-    var isChrome = !!window.webkitRTCPeerConnection;
+  var peerconnectioncounter = 0;
+  var isChrome = !!window.webkitRTCPeerConnection;
+  ['', 'webkit', 'moz'].forEach(function(prefix) {
+    if (!window[prefix + 'RTCPeerConnection']) {
+      return;
+    }
+    var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
@@ -284,18 +286,9 @@
         },
       });
     }
-
-    if (origPeerConnection === window.RTCPeerConnection) {
-      window.RTCPeerConnection = peerconnection;
-      window.RTCPeerConnection.prototype = origPeerConnection.prototype;
-    } else if (origPeerConnection === window.webkitRTCPeerConnection) {
-      window.webkitRTCPeerConnection = peerconnection;
-      window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
-    } else if (origPeerConnection === window.mozRTCPeerConnection) {
-      window.mozRTCPeerConnection = peerconnection;
-      window.mozRTCPeerConnection.prototype = origPeerConnection.prototype;
-    }
-  }
+    window[prefix + 'RTCPeerConnection'] = peerconnection;
+    window[prefix + 'RTCPeerConnection'].prototype = origPeerConnection.prototype;
+  });
 
   // getUserMedia wrappers
   function dumpStream(stream) {
