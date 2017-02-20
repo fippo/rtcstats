@@ -238,6 +238,9 @@
       pc.addEventListener('iceconnectionstatechange', function() {
         trace('oniceconnectionstatechange', id, pc.iceConnectionState);
       });
+      pc.addEventListener('icegatheringstatechange', function() {
+        trace('onicegatheringstatechange', id, pc.iceGatheringState);
+      });
       pc.addEventListener('negotiationneeded', function() {
         trace('onnegotiationneeded', id);
       });
