@@ -107,11 +107,13 @@
     }
   }
 
-  var origPeerConnection = window.webkitRTCPeerConnection ||
-    window.RTCPeerConnection || window.mozRTCPeerConnection;
-  if (origPeerConnection) {
-    var peerconnectioncounter = 0;
-    var isChrome = origPeerConnection === window.webkitRTCPeerConnection;
+  var peerconnectioncounter = 0;
+  var isChrome = !!window.webkitRTCPeerConnection;
+  ['', 'webkit', 'moz'].forEach(function(prefix) {
+    if (!window[prefix + 'RTCPeerConnection']) {
+      return;
+    }
+    var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
@@ -284,17 +286,9 @@
         },
       });
     }
-    if (window.webkitRTCPeerConnection) {
-      window.webkitRTCPeerConnection = peerconnection;
-      window.webkitRTCPeerConnection.prototype = origPeerConnection.prototype;
-    } else if (window.RTCPeerConnection) {
-      window.RTCPeerConnection = peerconnection;
-      window.RTCPeerConnection.prototype = origPeerConnection.prototype;
-    } else {
-      window.mozRTCPeerConnection = peerconnection;
-      window.mozRTCPeerConnection.prototype = origPeerConnection.prototype;
-    }
-  }
+    window[prefix + 'RTCPeerConnection'] = peerconnection;
+    window[prefix + 'RTCPeerConnection'].prototype = origPeerConnection.prototype;
+  });
 
   // getUserMedia wrappers
   function dumpStream(stream) {
