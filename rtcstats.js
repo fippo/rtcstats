@@ -250,6 +250,9 @@
       //    we have to collect results anyway so...
       var prev = {};
       var interval = window.setInterval(function() {
+        if (pc.signalingState === 'closed') {
+          return window.clearInterval(interval);
+        }
         if (isChrome) {
           pc.getStats(function(res) {
             var now = mangleChromeStats(pc, res);
@@ -268,12 +271,6 @@
           });
         }
       }, 1000);
-
-      pc.addEventListener('signalingstatechange', function() {
-        if (pc.signalingState === 'closed') {
-          window.clearInterval(interval);
-        }
-      });
       return pc;
     };
     // wrap static methods. Currently just generateCertificate.
