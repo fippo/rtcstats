@@ -24,7 +24,7 @@
     "webrtc-adapter-test": "^0.2.7"
   },
   "scripts": {
-    "test": "./node_modules/.bin/eslint rtcstats.js",
+    "test": "./node_modules/.bin/eslint rtcstats.js && npm run dist",
     "dist": "uglifyjs -o min.js rtcstats.js",
     "test-travis": "cp test/testpage.html node_modules/webrtc-adapter-test/ && test/run-tests"
   },
