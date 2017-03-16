@@ -217,7 +217,7 @@
                 if (args.length >= 3) {
                   args[2].apply(null, [err]);
                 }
-              }],
+              }]
             );
           });
         };
@@ -331,7 +331,7 @@
           if (eb) {
             eb(err);
           }
-        },
+        }
       );
     };
     if (navigator.webkitGetUserMedia) {

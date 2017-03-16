@@ -22,7 +22,15 @@
     "no-param-reassign": 0,
     "consistent-this": 0,
 
-    "no-warning-comments": 0
+    "no-warning-comments": 0,
+     
+    "comma-dangle": ["error", {
+        "arrays": "only-multiline",
+        "objects": "only-multiline",
+        "imports": "only-multiline",
+        "exports": "only-multiline",
+        "functions": "never",
+    }],
   },
   "plugins": [
     "require-path-exists"
