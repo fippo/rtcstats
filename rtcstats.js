@@ -118,15 +118,15 @@
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
 
+      if (!config) {
+        config = { nullConfig: true };
+      }
+
       config = JSON.parse(JSON.stringify(config)); // deepcopy
       // don't log credentials
       ((config && config.iceServers) || []).forEach(function(server) {
         delete server.credential;
       });
-
-      if (!config) {
-        config = { nullConfig: true };
-      }
 
       config.browserType = isChrome ? 'webkit' : 'moz';
       if (window.RTCIceGatherer) {
