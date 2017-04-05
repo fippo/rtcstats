@@ -118,6 +118,16 @@
       var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
 
+      pc.rtcstats = {
+        trace: function() {
+          var args = Array.prototype.slice.call(arguments);
+          if (args.length > 0) {
+            args.splice(1, 0, id);
+          }
+          trace.apply(null, args);
+        }
+      };
+
       config = JSON.parse(JSON.stringify(config)); // deepcopy
       // don't log credentials
       ((config && config.iceServers) || []).forEach(function(server) {
