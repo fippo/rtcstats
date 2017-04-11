@@ -108,7 +108,7 @@
   }
 
   var peerconnectioncounter = 0;
-  var isChrome = !!window.webkitRTCPeerConnection;
+  var isFirefox = !!window.mozRTCPeerConnection;
   ['', 'webkit', 'moz'].forEach(function(prefix) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
@@ -128,7 +128,11 @@
         delete server.credential;
       });
 
-      config.browserType = isChrome ? 'webkit' : 'moz';
+      if (!config) {
+        config = { nullConfig: true };
+      }
+
+      config.browserType = isFirefox ? 'moz' : 'webkit';
       if (window.RTCIceGatherer) {
         config.browserType = 'edge';
       }
@@ -254,18 +258,19 @@
       var prev = {};
       var interval = window.setInterval(function() {
         if (pc.signalingState === 'closed') {
-          return window.clearInterval(interval);
+          window.clearInterval(interval);
+          return;
         }
-        if (isChrome) {
-          pc.getStats(function(res) {
-            var now = mangleChromeStats(pc, res);
+        if (isFirefox) {
+          pc.getStats(null, function(res) {
+            var now = map2obj(res);
             var base = JSON.parse(JSON.stringify(now)); // our new prev
             trace('getstats', id, deltaCompression(prev, now));
             prev = base;
           });
         } else {
-          pc.getStats(null, function(res) {
-            var now = map2obj(res);
+          pc.getStats(function(res) {
+            var now = mangleChromeStats(pc, res);
             var base = JSON.parse(JSON.stringify(now)); // our new prev
             trace('getstats', id, deltaCompression(prev, now));
             prev = base;
