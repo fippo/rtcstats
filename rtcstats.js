@@ -128,10 +128,6 @@
         delete server.credential;
       });
 
-      if (!config) {
-        config = { nullConfig: true };
-      }
-
       config.browserType = isFirefox ? 'moz' : 'webkit';
       if (window.RTCIceGatherer) {
         config.browserType = 'edge';
@@ -144,87 +140,91 @@
         trace('constraints', id, constraints);
       }
 
-      var methods = ['createDataChannel', 'close'];
-      methods.forEach(function(method) {
-        var nativeMethod = pc[method];
-        pc[method] = function() {
-          trace(method, id, arguments);
-          return nativeMethod.apply(pc, arguments);
-        };
+      ['createDataChannel', 'close'].forEach(function(method) {
+        if (origPeerConnection.prototype[method]) {
+          var nativeMethod = pc[method];
+          pc[method] = function() {
+            trace(method, id, arguments);
+            return nativeMethod.apply(pc, arguments);
+          };
+        }
       });
 
-      methods = isFirefox ? ['addStream'] : ['addStream', 'removeStream'];
-      methods.forEach(function(method) {
-        var nativeMethod = pc[method];
-        pc[method] = function(stream) {
-          var streamInfo = stream.getTracks().map(function(t) {
-            return t.kind + ':' + t.id;
-          });
+      ['addStream', 'removeStream'].forEach(function(method) {
+        if (origPeerConnection.prototype[method]) {
+          var nativeMethod = pc[method];
+          pc[method] = function(stream) {
+            var streamInfo = stream.getTracks().map(function(t) {
+              return t.kind + ':' + t.id;
+            });
 
-          trace(method, id, stream.id + ' ' + streamInfo);
-          return nativeMethod.call(pc, stream);
-        };
+            trace(method, id, stream.id + ' ' + streamInfo);
+            return nativeMethod.call(pc, stream);
+          };
+        }
       });
 
-      methods = ['createOffer', 'createAnswer'];
-      methods.forEach(function(method) {
-        var nativeMethod = pc[method];
-        pc[method] = function() {
-          var args = arguments;
-          var opts;
-          if (arguments.length === 1 && typeof arguments[0] === 'object') {
-            opts = arguments[0];
-          } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
-            opts = arguments[2];
-          }
-          trace(method, id, opts);
-          return new Promise(function(resolve, reject) {
-            nativeMethod.apply(pc, [
-              function(description) {
-                trace(method + 'OnSuccess', id, description);
-                resolve(description);
-                if (args.length > 0 && typeof args[0] === 'function') {
-                  args[0].apply(null, [description]);
-                }
-              },
-              function(err) {
-                trace(method + 'OnFailure', id, err);
-                reject(err);
-                if (args.length > 1 && typeof args[1] === 'function') {
-                  args[1].apply(null, [err]);
-                }
-              },
-              opts,
-            ]);
-          });
-        };
+      ['createOffer', 'createAnswer'].forEach(function(method) {
+        if (origPeerConnection.prototype[method]) {
+          var nativeMethod = pc[method];
+          pc[method] = function() {
+            var args = arguments;
+            var opts;
+            if (arguments.length === 1 && typeof arguments[0] === 'object') {
+              opts = arguments[0];
+            } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
+              opts = arguments[2];
+            }
+            trace(method, id, opts);
+            return new Promise(function(resolve, reject) {
+              nativeMethod.apply(pc, [
+                function(description) {
+                  trace(method + 'OnSuccess', id, description);
+                  resolve(description);
+                  if (args.length > 0 && typeof args[0] === 'function') {
+                    args[0].apply(null, [description]);
+                  }
+                },
+                function(err) {
+                  trace(method + 'OnFailure', id, err);
+                  reject(err);
+                  if (args.length > 1 && typeof args[1] === 'function') {
+                    args[1].apply(null, [err]);
+                  }
+                },
+                opts,
+              ]);
+            });
+          };
+        }
       });
 
-      methods = ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate'];
-      methods.forEach(function(method) {
-        var nativeMethod = pc[method];
-        pc[method] = function() {
-          var args = arguments;
-          trace(method, id, args[0]);
-          return new Promise(function(resolve, reject) {
-            nativeMethod.apply(pc, [args[0],
-              function() {
-                trace(method + 'OnSuccess', id);
-                resolve();
-                if (args.length >= 2) {
-                  args[1].apply(null, []);
-                }
-              },
-              function(err) {
-                trace(method + 'OnFailure', id, err);
-                reject(err);
-                if (args.length >= 3) {
-                  args[2].apply(null, [err]);
-                }
-              }]
-            );
-          });
-        };
+      ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate'].forEach(function(method) {
+        if (origPeerConnection.prototype[method]) {
+          var nativeMethod = pc[method];
+          pc[method] = function() {
+            var args = arguments;
+            trace(method, id, args[0]);
+            return new Promise(function(resolve, reject) {
+              nativeMethod.apply(pc, [args[0],
+                function() {
+                  trace(method + 'OnSuccess', id);
+                  resolve();
+                  if (args.length >= 2) {
+                    args[1].apply(null, []);
+                  }
+                },
+                function(err) {
+                  trace(method + 'OnFailure', id, err);
+                  reject(err);
+                  if (args.length >= 3) {
+                    args[2].apply(null, [err]);
+                  }
+                }]
+              );
+            });
+          };
+        }
       });
 
       pc.addEventListener('icecandidate', function(e) {
