@@ -153,7 +153,7 @@
         };
       });
 
-      methods = ['addStream', 'removeStream'];
+      methods = isFirefox ? ['addStream'] : ['addStream', 'removeStream'];
       methods.forEach(function(method) {
         var nativeMethod = pc[method];
         pc[method] = function(stream) {
