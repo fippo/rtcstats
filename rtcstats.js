@@ -1,75 +1,114 @@
 'use strict';
 
-(function() {
-  // transforms a maplike to an object. Mostly for getStats +
-  // JSON.parse(JSON.stringify())
-  function map2obj(m) {
-    if (!m.entries) {
-      return m;
+// transforms a maplike to an object. Mostly for getStats +
+// JSON.parse(JSON.stringify())
+function map2obj(m) {
+  if (!m.entries) {
+    return m;
+  }
+  var o = {};
+  m.forEach(function(v, k) {
+    o[k] = v;
+  });
+  return o;
+}
+
+// apply a delta compression to the stats report. Reduces size by ~90%.
+// To reduce further, report keys could be compressed.
+function deltaCompression(oldStats, newStats) {
+  newStats = JSON.parse(JSON.stringify(newStats));
+  Object.keys(newStats).forEach(function(id) {
+    if (!oldStats[id]) {
+      return;
     }
-    var o = {};
-    m.forEach(function(v, k) {
-      o[k] = v;
-    });
-    return o;
-  }
-
-  // apply a delta compression to the stats report. Reduces size by ~90%.
-  // To reduce further, report keys could be compressed.
-  function deltaCompression(oldStats, newStats) {
-    newStats = JSON.parse(JSON.stringify(newStats));
-    Object.keys(newStats).forEach(function(id) {
-      if (!oldStats[id]) {
-        return;
+    var report = newStats[id];
+    Object.keys(report).forEach(function(name) {
+      if (report[name] === oldStats[id][name]) {
+        delete newStats[id][name];
       }
-      var report = newStats[id];
-      Object.keys(report).forEach(function(name) {
-        if (report[name] === oldStats[id][name]) {
-          delete newStats[id][name];
-        }
-        delete report.timestamp;
-        if (Object.keys(report).length === 0) {
-          delete newStats[id];
-        }
-      });
+      delete report.timestamp;
+      if (Object.keys(report).length === 0) {
+        delete newStats[id];
+      }
     });
-    // TODO: moving the timestamp to the top-level is not compression but...
-    newStats.timestamp = new Date();
-    return newStats;
-  }
+  });
+  // TODO: moving the timestamp to the top-level is not compression but...
+  newStats.timestamp = new Date();
+  return newStats;
+}
 
-  function mangleChromeStats(pc, response) {
-    var standardReport = {};
-    var reports = response.result();
-    reports.forEach(function(report) {
-      var standardStats = {
-        id: report.id,
-        timestamp: report.timestamp.getTime(),
-        type: report.type,
-      };
-      report.names().forEach(function(name) {
-        standardStats[name] = report.stat(name);
-      });
-      // backfill mediaType -- until https://codereview.chromium.org/1307633007/ lands.
-      if (report.type === 'ssrc' && !standardStats.mediaType && standardStats.googTrackId) {
-        // look up track kind in local or remote streams.
-        var streams = pc.getRemoteStreams().concat(pc.getLocalStreams());
-        for (var i = 0; i < streams.length && !standardStats.mediaType; i++) {
-          var tracks = streams[i].getTracks();
-          for (var j = 0; j < tracks.length; j++) {
-            if (tracks[j].id === standardStats.googTrackId) {
-              standardStats.mediaType = tracks[j].kind;
-              report.mediaType = tracks[j].kind;
-            }
+function mangleChromeStats(pc, response) {
+  var standardReport = {};
+  var reports = response.result();
+  reports.forEach(function(report) {
+    var standardStats = {
+      id: report.id,
+      timestamp: report.timestamp.getTime(),
+      type: report.type,
+    };
+    report.names().forEach(function(name) {
+      standardStats[name] = report.stat(name);
+    });
+    // backfill mediaType -- until https://codereview.chromium.org/1307633007/ lands.
+    if (report.type === 'ssrc' && !standardStats.mediaType && standardStats.googTrackId) {
+      // look up track kind in local or remote streams.
+      var streams = pc.getRemoteStreams().concat(pc.getLocalStreams());
+      for (var i = 0; i < streams.length && !standardStats.mediaType; i++) {
+        var tracks = streams[i].getTracks();
+        for (var j = 0; j < tracks.length; j++) {
+          if (tracks[j].id === standardStats.googTrackId) {
+            standardStats.mediaType = tracks[j].kind;
+            report.mediaType = tracks[j].kind;
           }
         }
       }
-      standardReport[standardStats.id] = standardStats;
-    });
-    return standardReport;
-  }
+    }
+    standardReport[standardStats.id] = standardStats;
+  });
+  return standardReport;
+}
 
-  var wsURL = 'wss://rtcstats.tokbox.com/';
+function dumpStream(stream) {
+  return {
+    id: stream.id,
+    tracks: stream.getTracks().map(function(track) {
+      return {
+        id: track.id,                 // unique identifier (GUID) for the track
+        kind: track.kind,             // `audio` or `video`
+        label: track.label,           // identified the track source
+        enabled: track.enabled,       // application can control it
+        muted: track.muted,           // application cannot control it (read-only)
+        readyState: track.readyState, // `live` or `ended`
+      };
+    }),
+  };
+}
+
+/*
+function filterBoringStats(results) {
+  Object.keys(results).forEach(function(id) {
+    switch (results[id].type) {
+      case 'certificate':
+      case 'codec':
+        delete results[id];
+        break;
+      default:
+        // noop
+    }
+  });
+  return results;
+}
+
+function removeTimestamps(results) {
+  // FIXME: does not work in FF since the timestamp can't be deleted.
+  Object.keys(results).forEach(function(id) {
+    delete results[id].timestamp;
+  });
+  return results;
+}
+*/
+
+module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
   var PROTOCOL_VERSION = '1.0';
   var buffer = [];
   var connection = new WebSocket(wsURL + window.location.pathname, PROTOCOL_VERSION);
@@ -109,7 +148,7 @@
 
   var peerconnectioncounter = 0;
   var isFirefox = !!window.mozRTCPeerConnection;
-  ['', 'webkit', 'moz'].forEach(function(prefix) {
+  prefixesToWrap.forEach(function(prefix) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
     }
@@ -278,7 +317,7 @@
             console.log(err);
           });
         }
-      }, 1000);
+      }, getStatsInterval);
       return pc;
     };
     // wrap static methods. Currently just generateCertificate.
@@ -296,25 +335,12 @@
   });
 
   // getUserMedia wrappers
-  function dumpStream(stream) {
-    return {
-      id: stream.id,
-      tracks: stream.getTracks().map(function(track) {
-        return {
-          id: track.id,                 // unique identifier (GUID) for the track
-          kind: track.kind,             // `audio` or `video`
-          label: track.label,           // identified the track source
-          enabled: track.enabled,       // application can control it
-          muted: track.muted,           // application cannot control it (read-only)
-          readyState: track.readyState, // `live` or `ended`
-        };
-      }),
-    };
-  }
-  if (navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
-    var origGetUserMedia = navigator.webkitGetUserMedia ?
-        navigator.webkitGetUserMedia.bind(navigator) :
-        navigator.mozGetUserMedia.bind(navigator);
+  prefixesToWrap.forEach(function(prefix) {
+    var name = prefix + (prefix.length ? 'GetUserMedia' : 'getUserMedia');
+    if (!navigator[name]) {
+      return;
+    }
+    var origGetUserMedia = navigator[name].bind(navigator);
     var gum = function() {
       trace('getUserMedia', null, arguments[0]);
       var cb = arguments[1];
@@ -336,26 +362,25 @@
         }
       );
     };
-    if (navigator.webkitGetUserMedia) {
-      navigator.webkitGetUserMedia = gum.bind(navigator);
-    } else {
-      navigator.mozGetUserMedia = gum.bind(navigator);
-    }
-  }
+    navigator[name] = gum.bind(navigator);
+  });
+
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    var gum2 = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia = function() {
+    var origGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    var gum = function() {
       trace('navigator.mediaDevices.getUserMedia', null, arguments[0]);
-      var p = gum2.apply(navigator.mediaDevices, arguments);
-      p.then(function(stream) {
+      return origGetUserMedia.apply(navigator.mediaDevices, arguments)
+      .then(function(stream) {
         trace('navigator.mediaDevices.getUserMediaOnSuccess', null, dumpStream(stream));
-      });
-      p.then(null, function(err) {
+        return stream;
+      }, function(err) {
         trace('navigator.mediaDevices.getUserMediaOnFailure', null, err.name);
+        return Promise.reject(err);
       });
-      return p;
     };
+    navigator.mediaDevices.getUserMedia = gum.bind(navigator.mediaDevices);
   }
+
   // TODO: are there events defined on MST that would allow us to listen when enabled was set?
   //    no :-(
   /*
@@ -366,31 +391,7 @@
   });
   */
 
-  /*
-  function filterBoringStats(results) {
-    Object.keys(results).forEach(function(id) {
-      switch (results[id].type) {
-        case 'certificate':
-        case 'codec':
-          delete results[id];
-          break;
-        default:
-          // noop
-      }
-    });
-    return results;
-  }
-
-  function removeTimestamps(results) {
-    // FIXME: does not work in FF since the timestamp can't be deleted.
-    Object.keys(results).forEach(function(id) {
-      delete results[id].timestamp;
-    });
-    return results;
-  }
-  */
-
   window.rtcstats = {
     trace: trace,
   };
-}());
+};
