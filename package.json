@@ -1,11 +1,9 @@
 {
   "name": "rtcstats",
-  "version": "0.0.1",
-  "description": "RTC Stats for WebRTC",
+  "version": "1.0.0",
+  "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "dependencies": {
-    "uuid": "^2.0.3",
-    "ws": "^0.8.1"
   },
   "devDependencies": {
     "chromedriver": "2.28.0",
@@ -37,5 +35,6 @@
     "webrtc",
     "rtcpeerconnection"
   ],
-  "author": "Philipp Hancke"
+  "author": "Philipp Hancke",
+  "license": "MIT"
 }
