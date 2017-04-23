@@ -18,7 +18,7 @@
     "eslint-plugin-react": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.5",
     "geckodriver": "1.4.0",
-    "selenium-webdriver": "^3.3.0",
+    "selenium-webdriver": "3.3.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
