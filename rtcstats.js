@@ -152,6 +152,10 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
     }
+    if (prefix === 'webkit' && window.RTCIceGatherer) {
+      // dont wrap webkitRTCPeerconnection in Edge.
+      return;
+    }
     var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
       var id = 'PC_' + peerconnectioncounter++;
