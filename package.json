@@ -6,6 +6,7 @@
   "dependencies": {
   },
   "devDependencies": {
+    "browserify": "^14.3.0",
     "chromedriver": "2.28.0",
     "eslint": "^3.12.2",
     "eslint-config-airbnb": "^13.0.0",
@@ -15,7 +16,7 @@
     "eslint-plugin-react": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.5",
     "geckodriver": "1.4.0",
-    "selenium-webdriver": "^3.3.0",
+    "selenium-webdriver": "3.3.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
@@ -23,9 +24,11 @@
     "webrtc-adapter": "^3.2.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/eslint rtcstats.js && npm run dist",
-    "dist": "uglifyjs -o min.js rtcstats.js",
-    "test-travis": "cp test/testpage.html node_modules/webrtc-adapter/test/ && test/run-tests"
+    "test": "./node_modules/.bin/eslint rtcstats.js nonmodule.js && npm run dist",
+    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && uglifyjs -o min.js out/rtcstats.js",
+    "pre-adapter": "cp test/pre-adapter.html test/testpage.html && test/run-tests",
+    "post-adapter": "cp test/post-adapter.html test/testpage.html && test/run-tests",
+    "test-travis": "npm run pre-adapter && npm run post-adapter"
   },
   "repository": {
     "type": "git",

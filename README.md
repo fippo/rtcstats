@@ -18,7 +18,15 @@ var pc = new RTCPeerConnection(yourConfiguration, {
 })
 ```
 
-Integrating as a module is currently not supported.
+### requiring as module
+```
+require('./rtcstats')(
+    'wss://rtcstats.tokbox.com', // url-to-your-websocker-server
+    1000, // interval at which getStats will be polled,
+    ['', 'webkit', 'moz'] // RTCPeerConnection prefixes to wrap.
+);
+```
+When using ontop of adapter it is typically not necessary (and potentially harmful to shim the webkit and moz prefixes in addition to the unprefixed version.
 
 ## Importing the dumps
 The dumps generated can be imported and visualized using [this tool](https://fippo.github.io/webrtc-dump-importer/rtcstats)
