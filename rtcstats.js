@@ -229,7 +229,7 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
                   }
                 },
                 function(err) {
-                  trace(method + 'OnFailure', id, err);
+                  trace(method + 'OnFailure', id, err.toString());
                   reject(err);
                   if (args.length > 1 && typeof args[1] === 'function') {
                     args[1].apply(null, [err]);
@@ -258,7 +258,7 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
                   }
                 },
                 function(err) {
-                  trace(method + 'OnFailure', id, err);
+                  trace(method + 'OnFailure', id, err.toString());
                   reject(err);
                   if (args.length >= 3) {
                     args[2].apply(null, [err]);
