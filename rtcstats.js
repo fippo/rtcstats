@@ -148,11 +148,12 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
 
   var peerconnectioncounter = 0;
   var isFirefox = !!window.mozRTCPeerConnection;
+  var isEdge = !!window.RTCIceGatherer;
   prefixesToWrap.forEach(function(prefix) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
     }
-    if (prefix === 'webkit' && window.RTCIceGatherer) {
+    if (prefix === 'webkit' && isEdge) {
       // dont wrap webkitRTCPeerconnection in Edge.
       return;
     }
@@ -171,9 +172,12 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
         delete server.credential;
       });
 
-      config.browserType = isFirefox ? 'moz' : 'webkit';
-      if (window.RTCIceGatherer) {
+      if (isFirefox) {
+        config.browserType = 'moz';
+      } else if (isEdge) {
         config.browserType = 'edge';
+      } else {
+        config.browserType = 'webkit';
       }
 
       trace('create', id, config);
@@ -298,30 +302,32 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
       // TODO: do we want one big interval and all peerconnections
       //    queried in that or one setInterval per PC?
       //    we have to collect results anyway so...
-      var prev = {};
-      var interval = window.setInterval(function() {
-        if (pc.signalingState === 'closed') {
-          window.clearInterval(interval);
-          return;
-        }
-        if (isFirefox) {
-          pc.getStats(null, function(res) {
-            var now = map2obj(res);
-            var base = JSON.parse(JSON.stringify(now)); // our new prev
-            trace('getstats', id, deltaCompression(prev, now));
-            prev = base;
-          });
-        } else {
-          pc.getStats(function(res) {
-            var now = mangleChromeStats(pc, res);
-            var base = JSON.parse(JSON.stringify(now)); // our new prev
-            trace('getstats', id, deltaCompression(prev, now));
-            prev = base;
-          }, function(err) {
-            console.log(err);
-          });
-        }
-      }, getStatsInterval);
+      if (!isEdge) {
+        var prev = {};
+        var interval = window.setInterval(function() {
+          if (pc.signalingState === 'closed') {
+            window.clearInterval(interval);
+            return;
+          }
+          if (isFirefox) {
+            pc.getStats(null, function(res) {
+              var now = map2obj(res);
+              var base = JSON.parse(JSON.stringify(now)); // our new prev
+              trace('getstats', id, deltaCompression(prev, now));
+              prev = base;
+            });
+          } else {
+            pc.getStats(function(res) {
+              var now = mangleChromeStats(pc, res);
+              var base = JSON.parse(JSON.stringify(now)); // our new prev
+              trace('getstats', id, deltaCompression(prev, now));
+              prev = base;
+            }, function(err) {
+              console.log(err);
+            });
+          }
+        }, getStatsInterval);
+      }
       return pc;
     };
     // wrap static methods. Currently just generateCertificate.
