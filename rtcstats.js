@@ -149,6 +149,7 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
   var peerconnectioncounter = 0;
   var isFirefox = !!window.mozRTCPeerConnection;
   var isEdge = !!window.RTCIceGatherer;
+  var isSafari = !isFirefox && window.RTCPeerConnection && !window.webkitRTCPeerConnection;
   prefixesToWrap.forEach(function(prefix) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
@@ -309,7 +310,7 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
             window.clearInterval(interval);
             return;
           }
-          if (isFirefox) {
+          if (isFirefox || isSafari) {
             pc.getStats(null, function(res) {
               var now = map2obj(res);
               var base = JSON.parse(JSON.stringify(now)); // our new prev

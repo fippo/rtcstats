@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "browserify": "^14.3.0",
-    "chromedriver": "2.28.0",
+    "chromedriver": "^2.29.0",
     "eslint": "^3.12.2",
     "eslint-config-airbnb": "^13.0.0",
     "eslint-config-airbnb-base": "^11.0.0",
@@ -21,7 +21,7 @@
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.6.1",
-    "webrtc-adapter": "^3.2.0"
+    "webrtc-adapter": "^4.0.0"
   },
   "scripts": {
     "test": "./node_modules/.bin/eslint rtcstats.js nonmodule.js && npm run dist",
