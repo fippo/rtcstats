@@ -311,7 +311,7 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
             return;
           }
           if (isFirefox || isSafari) {
-            pc.getStats(null, function(res) {
+            pc.getStats(null).then(function(res) {
               var now = map2obj(res);
               var base = JSON.parse(JSON.stringify(now)); // our new prev
               trace('getstats', id, deltaCompression(prev, now));
