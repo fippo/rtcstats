@@ -188,7 +188,7 @@ module.exports = function(wsURL, getStatsInterval, prefixesToWrap) {
         trace('constraints', id, constraints);
       }
 
-      ['createDataChannel', 'close'].forEach(function(method) {
+      ['createDataChannel', 'close', 'addTrack', 'removeTrack'].forEach(function(method) {
         if (origPeerConnection.prototype[method]) {
           var nativeMethod = pc[method];
           pc[method] = function() {
