@@ -151,7 +151,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         trace('constraints', id, constraints);
       }
 
-      ['createDataChannel', 'close', 'addTrack', 'removeTrack'].forEach(function(method) {
+      ['createDataChannel', 'close'].forEach(function(method) {
         if (origPeerConnection.prototype[method]) {
           var nativeMethod = pc[method];
           pc[method] = function() {
@@ -171,6 +171,29 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
 
             trace(method, id, stream.id + ' ' + streamInfo);
             return nativeMethod.call(pc, stream);
+          };
+        }
+      });
+
+      ['addTrack'].forEach(function(method) {
+        if (origPeerConnection.prototype[method]) {
+          var nativeMethod = pc[method];
+          pc[method] = function() {
+            var track = arguments[0];
+            var streams = [].slice.call(arguments, 1);
+            trace(method, id, track.kind + ':' + track.id + ' ' + (streams.map(function(s) { return 'stream:' + s.id; }).join(';') || '-'));
+            return nativeMethod.apply(pc, arguments);
+          };
+        }
+      });
+
+      ['removeTrack'].forEach(function(method) {
+        if (origPeerConnection.prototype[method]) {
+          var nativeMethod = pc[method];
+          pc[method] = function() {
+            var track = arguments[0].track;
+            trace(method, id, track ? track.kind + ':' + track.id : 'null');
+            return nativeMethod.apply(pc, arguments);
           };
         }
       });
