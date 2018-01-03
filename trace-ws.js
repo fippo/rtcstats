@@ -31,7 +31,7 @@ module.exports = function(wsURL) {
     args.push(new Date().getTime());
     if (connection.readyState === 1) {
       connection.send(JSON.stringify(args));
-    } else {
+    } else if (args[0] !== 'getstats') {
       buffer.push(args);
     }
   }
