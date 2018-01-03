@@ -13,9 +13,6 @@ env:
     - BROWSER=chrome  BVER=stable
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
-    - BROWSER=firefox BVER=stable
-    - BROWSER=firefox BVER=beta
-    - BROWSER=firefox BVER=nightly
     - BROWSER=firefox BVER=esr
 
 matrix:
@@ -23,7 +20,6 @@ matrix:
 
   allow_failures:
     - env: BROWSER=chrome  BVER=unstable
-    - env: BROWSER=firefox BVER=nightly
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
