@@ -210,24 +210,21 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
               opts = arguments[2];
             }
             trace(method, id, opts);
-            return new Promise(function(resolve, reject) {
-              nativeMethod.apply(pc, [
-                function(description) {
-                  trace(method + 'OnSuccess', id, description);
-                  resolve(description);
-                  if (args.length > 0 && typeof args[0] === 'function') {
-                    args[0].apply(null, [description]);
-                  }
-                },
-                function(err) {
-                  trace(method + 'OnFailure', id, err.toString());
-                  reject(err);
-                  if (args.length > 1 && typeof args[1] === 'function') {
-                    args[1].apply(null, [err]);
-                  }
-                },
-                opts,
-              ]);
+            return nativeMethod.apply(pc, opts ? [opts] : undefined)
+            .then(function(description) {
+              trace(method + 'OnSuccess', id, description);
+              if (args.length > 0 && typeof args[0] === 'function') {
+                args[0].apply(null, [description]);
+                return undefined;
+              }
+              return description;
+            }, function(err) {
+              trace(method + 'OnFailure', id, err.toString());
+              if (args.length > 1 && typeof args[1] === 'function') {
+                args[1].apply(null, [err]);
+                return;
+              }
+              throw err;
             });
           };
         }
@@ -239,23 +236,21 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           pc[method] = function() {
             var args = arguments;
             trace(method, id, args[0]);
-            return new Promise(function(resolve, reject) {
-              nativeMethod.apply(pc, [args[0],
-                function() {
-                  trace(method + 'OnSuccess', id);
-                  resolve();
-                  if (args.length >= 2) {
-                    args[1].apply(null, []);
-                  }
-                },
-                function(err) {
-                  trace(method + 'OnFailure', id, err.toString());
-                  reject(err);
-                  if (args.length >= 3) {
-                    args[2].apply(null, [err]);
-                  }
-                }]
-              );
+            return nativeMethod.apply(pc, [args[0]])
+            .then(function() {
+              trace(method + 'OnSuccess', id);
+              if (args.length >= 2 && typeof args[1] === 'function') {
+                args[1].apply(null, []);
+                return undefined;
+              }
+              return undefined;
+            }, function(err) {
+              trace(method + 'OnFailure', id, err.toString());
+              if (args.length >= 3 && typeof args[2] === 'function') {
+                args[2].apply(null, [err]);
+                return undefined;
+              }
+              throw err;
             });
           };
         }
