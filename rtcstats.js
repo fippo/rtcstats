@@ -382,8 +382,4 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
     }
   });
   */
-
-  window.rtcstats = {
-    trace: trace,
-  };
 };
