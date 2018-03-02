@@ -262,6 +262,9 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       pc.addEventListener('addstream', function(e) {
         trace('onaddstream', id, e.stream.id + ' ' + e.stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
       });
+      pc.addEventListener('track', function(e) {
+        trace('ontrack', id, e.track.kind + ':' + e.track.id + ' ' + e.streams.map(function(stream) { return 'stream:' + stream.id; }));
+      });
       pc.addEventListener('removestream', function(e) {
         trace('onremovestream', id, e.stream.id + ' ' + e.stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
       });
