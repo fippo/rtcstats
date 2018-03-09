@@ -70,8 +70,13 @@ module.exports = function(data) {
     switch(data[0]) {
     case 'addIceCandidate':
     case 'onicecandidate':
-        if (data[2] && data[2].candidate) {
-            data[2].candidate = obfuscateCandidate(data[2].candidate);
+        if (data[2]) {
+            if (data[2].candidate) {
+                data[2].candidate = obfuscateCandidate(data[2].candidate);
+            }
+            if (data[2].ip) {
+                data[2].ip = obfuscateIP(data[2].ip);
+            }
         }
         break;
     case 'setLocalDescription':
