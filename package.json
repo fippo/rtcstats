@@ -3,8 +3,7 @@
   "version": "2.1.0",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "browserify": "^14.3.0",
     "chromedriver": "^2.29.0",
@@ -21,7 +20,7 @@
     "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.6.1",
-    "webrtc-adapter": "^4.0.0"
+    "webrtc-adapter": "https://github.com/fippo/adapter#v4.2.2-no-sandbox"
   },
   "scripts": {
     "test": "./node_modules/.bin/eslint rtcstats.js nonmodule.js && npm run dist",
