@@ -14,7 +14,7 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.5",
-    "geckodriver": "1.4.0",
+    "geckodriver": "^1.11.0",
     "selenium-webdriver": "3.3.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",

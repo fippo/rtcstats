@@ -13,6 +13,7 @@ env:
     - BROWSER=chrome  BVER=stable
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
+    - BROWSER=firefox BVER=stable
     - BROWSER=firefox BVER=esr
 
 matrix:
@@ -28,6 +29,7 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 
 script:
+  - if [ "$BVER" == "esr" ]; then wget https://github.com/mozilla/geckodriver/releases/download/v0.14.0/geckodriver-v0.14.0-linux64.tar.gz && tar -xzf geckodriver-v0.14.0-linux64.tar.gz && mv geckodriver node_modules/.bin; fi
   - npm test && npm run test-travis
 
 after_failure:
