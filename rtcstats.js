@@ -112,7 +112,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
   var peerconnectioncounter = 0;
   var isFirefox = !!window.mozRTCPeerConnection;
   var isEdge = !!window.RTCIceGatherer;
-  var isSafari = !isFirefox && window.RTCPeerConnection && !window.webkitRTCPeerConnection;
+  var isSafari = !isFirefox && window.RTCPeerConnection && !window.webkitGetUserMedia;
   prefixesToWrap.forEach(function(prefix) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
