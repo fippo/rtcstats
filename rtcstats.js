@@ -123,8 +123,9 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
     }
     var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
-      var id = 'PC_' + peerconnectioncounter++;
       var pc = new origPeerConnection(config, constraints);
+      var id = 'PC_' + peerconnectioncounter++;
+      pc.__rtcStatsId = id;
 
       if (!config) {
         config = { nullConfig: true };
@@ -150,111 +151,6 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       if (constraints) {
         trace('constraints', id, constraints);
       }
-
-      ['createDataChannel', 'close'].forEach(function(method) {
-        if (origPeerConnection.prototype[method]) {
-          var nativeMethod = pc[method];
-          pc[method] = function() {
-            trace(method, id, arguments);
-            return nativeMethod.apply(pc, arguments);
-          };
-        }
-      });
-
-      ['addStream', 'removeStream'].forEach(function(method) {
-        if (origPeerConnection.prototype[method]) {
-          var nativeMethod = pc[method];
-          pc[method] = function(stream) {
-            var streamInfo = stream.getTracks().map(function(t) {
-              return t.kind + ':' + t.id;
-            });
-
-            trace(method, id, stream.id + ' ' + streamInfo);
-            return nativeMethod.call(pc, stream);
-          };
-        }
-      });
-
-      ['addTrack'].forEach(function(method) {
-        if (origPeerConnection.prototype[method]) {
-          var nativeMethod = pc[method];
-          pc[method] = function() {
-            var track = arguments[0];
-            var streams = [].slice.call(arguments, 1);
-            trace(method, id, track.kind + ':' + track.id + ' ' + (streams.map(function(s) { return 'stream:' + s.id; }).join(';') || '-'));
-            return nativeMethod.apply(pc, arguments);
-          };
-        }
-      });
-
-      ['removeTrack'].forEach(function(method) {
-        if (origPeerConnection.prototype[method]) {
-          var nativeMethod = pc[method];
-          pc[method] = function() {
-            var track = arguments[0].track;
-            trace(method, id, track ? track.kind + ':' + track.id : 'null');
-            return nativeMethod.apply(pc, arguments);
-          };
-        }
-      });
-
-      ['createOffer', 'createAnswer'].forEach(function(method) {
-        if (origPeerConnection.prototype[method]) {
-          var nativeMethod = pc[method];
-          pc[method] = function() {
-            var args = arguments;
-            var opts;
-            if (arguments.length === 1 && typeof arguments[0] === 'object') {
-              opts = arguments[0];
-            } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
-              opts = arguments[2];
-            }
-            trace(method, id, opts);
-            return nativeMethod.apply(pc, opts ? [opts] : undefined)
-            .then(function(description) {
-              trace(method + 'OnSuccess', id, description);
-              if (args.length > 0 && typeof args[0] === 'function') {
-                args[0].apply(null, [description]);
-                return undefined;
-              }
-              return description;
-            }, function(err) {
-              trace(method + 'OnFailure', id, err.toString());
-              if (args.length > 1 && typeof args[1] === 'function') {
-                args[1].apply(null, [err]);
-                return;
-              }
-              throw err;
-            });
-          };
-        }
-      });
-
-      ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate'].forEach(function(method) {
-        if (origPeerConnection.prototype[method]) {
-          var nativeMethod = pc[method];
-          pc[method] = function() {
-            var args = arguments;
-            trace(method, id, args[0]);
-            return nativeMethod.apply(pc, [args[0]])
-            .then(function() {
-              trace(method + 'OnSuccess', id);
-              if (args.length >= 2 && typeof args[1] === 'function') {
-                args[1].apply(null, []);
-                return undefined;
-              }
-              return undefined;
-            }, function(err) {
-              trace(method + 'OnFailure', id, err.toString());
-              if (args.length >= 3 && typeof args[2] === 'function') {
-                args[2].apply(null, [err]);
-                return undefined;
-              }
-              throw err;
-            });
-          };
-        }
-      });
 
       pc.addEventListener('icecandidate', function(e) {
         trace('onicecandidate', id, e.candidate);
@@ -315,6 +211,115 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       }
       return pc;
     };
+
+    ['createDataChannel', 'close'].forEach(function(method) {
+      var nativeMethod = origPeerConnection.prototype[method];
+      if (nativeMethod) {
+        origPeerConnection.prototype[method] = function() {
+          trace(method, this.__rtcStatsId, arguments);
+          return nativeMethod.apply(this, arguments);
+        };
+      }
+    });
+
+    ['addStream', 'removeStream'].forEach(function(method) {
+      var nativeMethod = origPeerConnection.prototype[method];
+      if (nativeMethod) {
+        origPeerConnection.prototype[method] = function() {
+          var stream = arguments[0];
+          var streamInfo = stream.getTracks().map(function(t) {
+            return t.kind + ':' + t.id;
+          });
+
+          trace(method, this.__rtcStatsId, stream.id + ' ' + streamInfo);
+          return nativeMethod.apply(this, arguments);
+        };
+      }
+    });
+
+    ['addTrack'].forEach(function(method) {
+      var nativeMethod = origPeerConnection.prototype[method];
+      if (nativeMethod) {
+        origPeerConnection.prototype[method] = function() {
+          var track = arguments[0];
+          var streams = [].slice.call(arguments, 1);
+          trace(method, this.__rtcStatsId, track.kind + ':' + track.id + ' ' + (streams.map(function(s) { return 'stream:' + s.id; }).join(';') || '-'));
+          return nativeMethod.apply(this, arguments);
+        };
+      }
+    });
+
+    ['removeTrack'].forEach(function(method) {
+      var nativeMethod = origPeerConnection.prototype[method];
+      if (nativeMethod) {
+        origPeerConnection.prototype[method] = function() {
+          var track = arguments[0].track;
+          trace(method, this.__rtcStatsId, track ? track.kind + ':' + track.id : 'null');
+          return nativeMethod.apply(this, arguments);
+        };
+      }
+    });
+
+    ['createOffer', 'createAnswer'].forEach(function(method) {
+      var nativeMethod = origPeerConnection.prototype[method];
+      if (nativeMethod) {
+        origPeerConnection.prototype[method] = function() {
+          var rtcStatsId = this.__rtcStatsId;
+          var args = arguments;
+          var opts;
+          if (arguments.length === 1 && typeof arguments[0] === 'object') {
+            opts = arguments[0];
+          } else if (arguments.length === 3 && typeof arguments[2] === 'object') {
+            opts = arguments[2];
+          }
+          trace(method, this.__rtcStatsId, opts);
+          return nativeMethod.apply(this, opts ? [opts] : undefined)
+          .then(function(description) {
+            trace(method + 'OnSuccess', rtcStatsId, description);
+            if (args.length > 0 && typeof args[0] === 'function') {
+              args[0].apply(null, [description]);
+              return undefined;
+            }
+            return description;
+          }, function(err) {
+            trace(method + 'OnFailure', rtcStatsId, err.toString());
+            if (args.length > 1 && typeof args[1] === 'function') {
+              args[1].apply(null, [err]);
+              return;
+            }
+            throw err;
+          });
+        };
+      }
+    });
+
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate'].forEach(function(method) {
+      var nativeMethod = origPeerConnection.prototype[method];
+      if (nativeMethod) {
+        origPeerConnection.prototype[method] = function() {
+          var rtcStatsId = this.__rtcStatsId;
+          var args = arguments;
+          trace(method, this.__rtcStatsId, args[0]);
+          return nativeMethod.apply(this, [args[0]])
+          .then(function() {
+            trace(method + 'OnSuccess', rtcStatsId);
+            if (args.length >= 2 && typeof args[1] === 'function') {
+              args[1].apply(null, []);
+              return undefined;
+            }
+            return undefined;
+          }, function(err) {
+            trace(method + 'OnFailure', rtcStatsId, err.toString());
+            if (args.length >= 3 && typeof args[2] === 'function') {
+              args[2].apply(null, [err]);
+              return undefined;
+            }
+            throw err;
+          });
+        };
+      }
+    });
+
     // wrap static methods. Currently just generateCertificate.
     if (origPeerConnection.generateCertificate) {
       Object.defineProperty(peerconnection, 'generateCertificate', {
