@@ -173,6 +173,9 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       pc.addEventListener('icegatheringstatechange', function() {
         trace('onicegatheringstatechange', id, pc.iceGatheringState);
       });
+      pc.addEventListener('connectionstatechange', function() {
+        trace('onconnectionstatechange', id, pc.connectionState);
+      });
       pc.addEventListener('negotiationneeded', function() {
         trace('onnegotiationneeded', id);
       });
