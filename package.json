@@ -6,7 +6,7 @@
   "dependencies": {},
   "devDependencies": {
     "browserify": "^14.3.0",
-    "chromedriver": "^2.29.0",
+    "chromedriver": "^2.44.0",
     "eslint": "^3.12.2",
     "eslint-config-airbnb": "^13.0.0",
     "eslint-config-airbnb-base": "^11.0.0",
@@ -14,11 +14,11 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.5",
-    "geckodriver": "1.4.0",
-    "selenium-webdriver": "3.3.0",
+    "geckodriver": "^1.14.1",
+    "selenium-webdriver": "^3.6.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
-    "travis-multirunner": "^3.0.0",
+    "travis-multirunner": "^4.5.0",
     "uglify-js": "^2.6.1",
     "webrtc-adapter": "https://github.com/fippo/adapter#v4.2.2-no-sandbox"
   },
