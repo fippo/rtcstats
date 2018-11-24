@@ -13,7 +13,6 @@ env:
     - BROWSER=chrome  BVER=stable
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
-    - BROWSER=firefox BVER=esr
 
 matrix:
   fast_finish: true
