@@ -384,6 +384,23 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
     navigator.mediaDevices.getUserMedia = gum.bind(navigator.mediaDevices);
   }
 
+  // getDisplayMedia
+  if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+    var origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+    var gdm = function() {
+      trace('navigator.mediaDevices.getDisplayMedia', null, arguments[0]);
+      return origGetDisplayMedia.apply(navigator.mediaDevices, arguments)
+      .then(function(stream) {
+        trace('navigator.mediaDevices.getDisplayMediaOnSuccess', null, dumpStream(stream));
+        return stream;
+      }, function(err) {
+        trace('navigator.mediaDevices.getDisplayMediaOnFailure', null, err.name);
+        return Promise.reject(err);
+      });
+    };
+    navigator.mediaDevices.getDisplayMedia = gdm.bind(navigator.mediaDevices);
+  }
+
   // TODO: are there events defined on MST that would allow us to listen when enabled was set?
   //    no :-(
   /*
