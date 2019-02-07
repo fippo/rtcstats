@@ -49,20 +49,6 @@ function mangleChromeStats(pc, response) {
     report.names().forEach(function(name) {
       standardStats[name] = report.stat(name);
     });
-    // backfill mediaType -- until https://codereview.chromium.org/1307633007/ lands.
-    if (report.type === 'ssrc' && !standardStats.mediaType && standardStats.googTrackId) {
-      // look up track kind in local or remote streams.
-      var streams = pc.getRemoteStreams().concat(pc.getLocalStreams());
-      for (var i = 0; i < streams.length && !standardStats.mediaType; i++) {
-        var tracks = streams[i].getTracks();
-        for (var j = 0; j < tracks.length; j++) {
-          if (tracks[j].id === standardStats.googTrackId) {
-            standardStats.mediaType = tracks[j].kind;
-            report.mediaType = tracks[j].kind;
-          }
-        }
-      }
-    }
     standardReport[standardStats.id] = standardStats;
   });
   return standardReport;
