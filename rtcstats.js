@@ -163,7 +163,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         trace('onconnectionstatechange', id, pc.connectionState);
       });
       pc.addEventListener('negotiationneeded', function() {
-        trace('onnegotiationneeded', id);
+        trace('onnegotiationneeded', id, undefined);
       });
       pc.addEventListener('datachannel', function(event) {
         trace('ondatachannel', id, [event.channel.id, event.channel.label]);
@@ -291,7 +291,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           trace(method, this.__rtcStatsId, args[0]);
           return nativeMethod.apply(this, [args[0]])
           .then(function() {
-            trace(method + 'OnSuccess', rtcStatsId);
+            trace(method + 'OnSuccess', rtcStatsId, undefined);
             if (args.length >= 2 && typeof args[1] === 'function') {
               args[1].apply(null, []);
               return undefined;
