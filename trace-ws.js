@@ -1,4 +1,4 @@
-var PROTOCOL_VERSION = '1.0';
+var PROTOCOL_VERSION = '2.0';
 module.exports = function(wsURL) {
   var buffer;
   var connection;

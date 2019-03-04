@@ -26,14 +26,13 @@ function deltaCompression(oldStats, newStats) {
       if (report[name] === oldStats[id][name]) {
         delete newStats[id][name];
       }
-      delete report.timestamp;
       if (Object.keys(report).length === 0) {
+        delete newStats[id];
+      } else if (Object.keys(report).length === 1 && report.timestamp) {
         delete newStats[id];
       }
     });
   });
-  // TODO: moving the timestamp to the top-level is not compression but...
-  newStats.timestamp = new Date();
   return newStats;
 }
 
