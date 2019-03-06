@@ -1,6 +1,6 @@
 {
   "name": "rtcstats",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "dependencies": {},
