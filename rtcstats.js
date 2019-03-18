@@ -171,7 +171,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       // TODO: do we want one big interval and all peerconnections
       //    queried in that or one setInterval per PC?
       //    we have to collect results anyway so...
-      if (!isEdge) {
+      if (!isEdge && getStatsInterval) {
         var prev = {};
         var interval = window.setInterval(function() {
           if (pc.signalingState === 'closed') {
