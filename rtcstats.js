@@ -168,34 +168,44 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         trace('ondatachannel', id, [event.channel.id, event.channel.label]);
       });
 
+      var prev = {};
+      var getStats = function() {
+        if (isFirefox || isSafari) {
+          pc.getStats(null).then(function(res) {
+            var now = map2obj(res);
+            var base = JSON.parse(JSON.stringify(now)); // our new prev
+            trace('getstats', id, deltaCompression(prev, now));
+            prev = base;
+          });
+        } else {
+          pc.getStats(function(res) {
+            var now = mangleChromeStats(pc, res);
+            var base = JSON.parse(JSON.stringify(now)); // our new prev
+            trace('getstats', id, deltaCompression(prev, now));
+            prev = base;
+          }, function(err) {
+            console.log(err);
+          });
+        }
+      };
       // TODO: do we want one big interval and all peerconnections
       //    queried in that or one setInterval per PC?
       //    we have to collect results anyway so...
       if (!isEdge && getStatsInterval) {
-        var prev = {};
         var interval = window.setInterval(function() {
           if (pc.signalingState === 'closed') {
             window.clearInterval(interval);
             return;
           }
-          if (isFirefox || isSafari) {
-            pc.getStats(null).then(function(res) {
-              var now = map2obj(res);
-              var base = JSON.parse(JSON.stringify(now)); // our new prev
-              trace('getstats', id, deltaCompression(prev, now));
-              prev = base;
-            });
-          } else {
-            pc.getStats(function(res) {
-              var now = mangleChromeStats(pc, res);
-              var base = JSON.parse(JSON.stringify(now)); // our new prev
-              trace('getstats', id, deltaCompression(prev, now));
-              prev = base;
-            }, function(err) {
-              console.log(err);
-            });
-          }
+          getStats();
         }, getStatsInterval);
+      }
+      if (!isEdge) {
+        pc.addEventListener('iceconnectionstatechange', function() {
+          if (pc.iceConnectionState === 'connected') {
+            getStats();
+          }
+        });
       }
       return pc;
     };
