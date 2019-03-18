@@ -217,7 +217,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           var stream = arguments[0];
           var streamInfo = stream.getTracks().map(function(t) {
             return t.kind + ':' + t.id;
-          });
+          }).join(',');
 
           trace(method, this.__rtcStatsId, stream.id + ' ' + streamInfo);
           return nativeMethod.apply(this, arguments);
