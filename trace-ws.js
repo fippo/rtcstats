@@ -15,6 +15,7 @@ module.exports = function(wsURL) {
       buffer.push(args);
     }
   };
+  var connectTime;
 
   trace.close = function() {
     connection.close();
@@ -25,6 +26,8 @@ module.exports = function(wsURL) {
       connection.close();
     }
     connection = new WebSocket(wsURL + window.location.pathname, PROTOCOL_VERSION);
+    connectTime = Date.now();
+
     connection.onerror = function(e) {
       console.log('WS ERROR', e);
     };
@@ -39,6 +42,7 @@ module.exports = function(wsURL) {
       while (buffer.length) {
         connection.send(JSON.stringify(buffer.shift()));
       }
+      trace('wsconnect', null, Date.now() - connectTime);
     };
 
     /*
