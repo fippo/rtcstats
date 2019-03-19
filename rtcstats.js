@@ -33,6 +33,21 @@ function deltaCompression(oldStats, newStats) {
       }
     });
   });
+
+  var timestamp = -Infinity;
+  Object.keys(newStats).forEach(function(id) {
+    var report = newStats[id];
+    if (report.timestamp > timestamp) {
+      timestamp = report.timestamp;
+    }
+  });
+  Object.keys(newStats).forEach(function(id) {
+    var report = newStats[id];
+    if (report.timestamp === timestamp) {
+      report.timestamp = 0;
+    }
+  });
+  newStats.timestamp = timestamp;
   return newStats;
 }
 
