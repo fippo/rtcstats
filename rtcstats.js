@@ -18,10 +18,11 @@ function map2obj(m) {
 function deltaCompression(oldStats, newStats) {
   newStats = JSON.parse(JSON.stringify(newStats));
   Object.keys(newStats).forEach(function(id) {
+    var report = newStats[id];
+    delete report.id;
     if (!oldStats[id]) {
       return;
     }
-    var report = newStats[id];
     Object.keys(report).forEach(function(name) {
       if (report[name] === oldStats[id][name]) {
         delete newStats[id][name];
