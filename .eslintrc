@@ -1,5 +1,4 @@
  {
-  "extends": "eslint-config-airbnb",
   "rules": {
     "no-underscore-dangle": 0,
     "no-eq-null": 0,

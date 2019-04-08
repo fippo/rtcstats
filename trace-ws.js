@@ -49,4 +49,4 @@ module.exports = function(wsURL) {
   };
   trace.connect();
   return trace;
-}
+};

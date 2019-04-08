@@ -8,6 +8,13 @@
     },
     "merge-conflict": {
       "type": "merge-conflict"
+    },
+    "javascript": {
+      "type": "eslint",
+      "include": [
+        "(^.*\\.js$)"
+      ],
+      "bin": "./node_modules/.bin/eslint"
     }
   }
 }

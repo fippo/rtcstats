@@ -8,12 +8,6 @@
     "browserify": "^16.2.3",
     "chromedriver": "^2.44.0",
     "eslint": "^3.12.2",
-    "eslint-config-airbnb": "^13.0.0",
-    "eslint-config-airbnb-base": "^11.0.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "^2.2.3",
-    "eslint-plugin-react": "^6.8.0",
-    "eslint-plugin-require-path-exists": "^1.1.5",
     "geckodriver": "^1.14.1",
     "selenium-webdriver": "^3.6.0",
     "tape": "^4.0.0",
@@ -23,7 +17,7 @@
     "webrtc-adapter": "https://github.com/fippo/adapter#v4.2.2-no-sandbox"
   },
   "scripts": {
-    "test": "./node_modules/.bin/eslint rtcstats.js nonmodule.js && npm run dist",
+    "test": "./node_modules/.bin/eslint rtcstats.js trace-ws.js nonmodule.js && npm run dist",
     "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && uglifyjs -o min.js out/rtcstats.js",
     "pre-adapter": "cp test/pre-adapter.html test/testpage.html && test/run-tests",
     "post-adapter": "cp test/post-adapter.html test/testpage.html && test/run-tests",
