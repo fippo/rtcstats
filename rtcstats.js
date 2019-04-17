@@ -199,8 +199,6 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             var base = JSON.parse(JSON.stringify(now)); // our new prev
             trace('getstats', id, deltaCompression(prev, now));
             prev = base;
-          }, function(err) {
-            console.log(err);
           });
         }
       };
