@@ -7,6 +7,9 @@ module.exports = function(wsURL) {
     // TODO: drop getStats when not connected?
     var args = Array.prototype.slice.call(arguments);
     args.push(new Date().getTime());
+    if (args[1] instanceof RTCPeerConnection) {
+      args[1] = args[1].__rtcStatsId;
+    }
     if (connection.readyState === WebSocket.OPEN) {
       connection.send(JSON.stringify(args));
     } else if (connection.readyState >= WebSocket.CLOSING) {
