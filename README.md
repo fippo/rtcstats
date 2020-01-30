@@ -20,6 +20,14 @@ var pc = new RTCPeerConnection(yourConfiguration, {
 })
 ```
 
+If that integration is not possible there is a fallback integration which allows
+sending per-client information about the user id and conference id. This
+can be used by calling
+```
+trace('identity', null, {user: 'your client identifier',
+    conference:'identifier for the conference, e.g. room name'});
+```
+
 ### Requiring as module
 
 #### build
