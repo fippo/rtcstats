@@ -1,0 +1,11 @@
+dist: bionic
+language: node_js
+node_js:
+- 12
+
+script:
+  - npm test
+
+after_failure:
+  - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
+
