@@ -6,26 +6,19 @@
   "dependencies": {},
   "devDependencies": {
     "browserify": "^16.2.3",
-    "chromedriver": "^2.46.0",
     "eslint": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.9",
-    "geckodriver": "^1.14.1",
-    "selenium-webdriver": "^3.6.0",
     "tape": "^4.10.1",
     "travis-multirunner": "^4.5.0",
-    "uglify-js": "^2.6.1",
-    "webrtc-adapter": "git+https://github.com/fippo/adapter.git#v4.2.2-no-sandbox"
+    "uglify-js": "^2.6.1"
   },
   "scripts": {
     "test": "./node_modules/.bin/eslint rtcstats.js trace-ws.js nonmodule.js && npm run dist",
-    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && uglifyjs -o min.js out/rtcstats.js",
-    "pre-adapter": "cp test/pre-adapter.html test/testpage.html && test/run-tests",
-    "post-adapter": "cp test/post-adapter.html test/testpage.html && test/run-tests",
-    "test-travis": "npm run pre-adapter && npm run post-adapter"
+    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && uglifyjs -o min.js out/rtcstats.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/opentok/rtcstats.git"
+    "url": "git+https://github.com/fippo/rtcstats.git"
   },
   "keywords": [
     "webrtc",
