@@ -125,6 +125,14 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
     var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
       var pc = new origPeerConnection(config, constraints);
+      if (config && config.iceServers[0] && config.iceServers[0].urls ) {
+        for (const iceUrl of config.iceServers[0].urls) {
+          if (iceUrl.indexOf('taas.callstats.io') >= 0) {
+            return pc;
+          }
+        }
+      }
+
       var id = 'PC_' + peerconnectioncounter++;
       pc.__rtcStatsId = id;
 

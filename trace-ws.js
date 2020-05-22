@@ -1,7 +1,7 @@
 var PROTOCOL_VERSION = '2.0';
 module.exports = function(wsURL) {
-  var buffer;
-  var connection;
+  var buffer = [];
+  var connection = undefined;
   var trace = function() {
     //console.log.apply(console, arguments);
     // TODO: drop getStats when not connected?
@@ -10,9 +10,9 @@ module.exports = function(wsURL) {
     if (args[1] instanceof RTCPeerConnection) {
       args[1] = args[1].__rtcStatsId;
     }
-    if (connection.readyState === WebSocket.OPEN) {
+    if (connection && (connection.readyState === WebSocket.OPEN)) {
       connection.send(JSON.stringify(args));
-    } else if (connection.readyState >= WebSocket.CLOSING) {
+    } else if (connection && (connection.readyState >= WebSocket.CLOSING)) {
       // no-op. Possibly log?
     } else if (args[0] !== 'getstats') {
       buffer.push(args);
@@ -50,6 +50,6 @@ module.exports = function(wsURL) {
     };
     */
   };
-  trace.connect();
+  //trace.connect();
   return trace;
 };
