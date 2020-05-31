@@ -20,7 +20,7 @@ module.exports = function(wsURL) {
   };
 
   trace.close = function() {
-    connection.close();
+    connection && connection.close();
   };
   trace.connect = function() {
     buffer = [];
