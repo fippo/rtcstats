@@ -166,13 +166,11 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         if (constraints) {
           trace('constraints', id, constraints);
         }
-        throw "PeerConnection Caboooommmm!";
 
         pc.addEventListener('icecandidate', function(e) {
           trace('onicecandidate', id, e.candidate);
         });
         pc.addEventListener('addstream', function(e) {
-          throw "Caboooommmm!";
           trace('onaddstream', id, e.stream.id + ' ' + e.stream.getTracks().map(function(t) { return t.kind + ':' + t.id; }));
         });
         pc.addEventListener('track', function(e) {
@@ -240,7 +238,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         return pc;
       } catch (error) {
         // If something went wrong, return a normal PeerConnection
-        console.warn('RTCStats PeerConnection bind failed: ', error);
+        console.error('RTCStats PeerConnection bind failed: ', error);
 
         return new origPeerConnection(origConfig, origConstraints);
       }
@@ -253,7 +251,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           try {
             trace(method, this.__rtcStatsId, arguments);
           } catch (error) {
-            console.warn(`RTCStats ${method} bind failed: `, error);
+            console.error(`RTCStats ${method} bind failed: `, error);
           }
 
           return nativeMethod.apply(this, arguments);
@@ -274,7 +272,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             trace(method, this.__rtcStatsId, stream.id + ' ' + streamInfo);        
           }
           catch (error) {
-            console.warn(`RTCStats ${method} bind failed: `, error);
+            console.error(`RTCStats ${method} bind failed: `, error);
           }
 
           return nativeMethod.apply(this, arguments);
@@ -292,7 +290,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             trace(method, this.__rtcStatsId, track.kind + ':' + track.id + ' ' + (streams.map(function(s) { return 'stream:' + s.id; }).join(';') || '-'));      
           }
           catch (error) {
-            console.warn(`RTCStats ${method} bind failed: `, error);
+            console.error(`RTCStats ${method} bind failed: `, error);
           }
 
           return nativeMethod.apply(this, arguments);
@@ -309,7 +307,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             trace(method, this.__rtcStatsId, track ? track.kind + ':' + track.id : 'null');
           }
           catch (error) {
-            console.warn(`RTCStats ${method} bind failed: `, error);
+            console.error(`RTCStats ${method} bind failed: `, error);
           }
 
           return nativeMethod.apply(this, arguments);
@@ -337,7 +335,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           try {
             trace(method, this.__rtcStatsId, opts);
           } catch (error) {
-            console.warn(`RTCStats ${method} bind failed: `, error);
+            console.error(`RTCStats ${method} bind failed: `, error);
           }
 
           return nativeMethod.apply(this, opts ? [opts] : undefined)
@@ -345,7 +343,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             try {
               trace(method + 'OnSuccess', rtcStatsId, description);
             } catch (error) {
-              console.warn(`RTCStats ${method} promise success bind failed: `, error);
+              console.error(`RTCStats ${method} promise success bind failed: `, error);
             }
 
 
@@ -362,7 +360,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             try {
               trace(method + 'OnFailure', rtcStatsId, err.toString());
             } catch (error) {
-              console.warn(`RTCStats ${method} promise failure bind failed: `, error);
+              console.error(`RTCStats ${method} promise failure bind failed: `, error);
             }
 
             // We can't safely bypass this part of logic because it's necessary for Proxying this request.
@@ -388,7 +386,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           try {
             trace(method, this.__rtcStatsId, args[0]);
           } catch (error) {
-            console.warn(`RTCStats ${method} bind failed: `, error);
+            console.error(`RTCStats ${method} bind failed: `, error);
           }
 
           return nativeMethod.apply(this, [args[0]])
@@ -396,7 +394,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             try {
               trace(method + 'OnSuccess', rtcStatsId, undefined);
             } catch (error) {
-              console.warn(`RTCStats ${method} promise success bind failed: `, error);
+              console.error(`RTCStats ${method} promise success bind failed: `, error);
             }
             
             // We can't safely bypass this part of logic because it's necessary for Proxying this request.
@@ -410,7 +408,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             try {
               trace(method + 'OnFailure', rtcStatsId, err.toString());
             } catch (error) {
-              console.warn(`RTCStats ${method} promise failure bind failed: `, error);
+              console.error(`RTCStats ${method} promise failure bind failed: `, error);
             }
 
             // We can't safely bypass this part of logic because it's necessary for Proxying this request.
@@ -450,7 +448,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       try {
         trace('getUserMedia', null, arguments[0]);
       } catch (error) {
-        console.warn(`RTCStats getUserMedia bind failed: `, error);
+        console.error(`RTCStats getUserMedia bind failed: `, error);
       }
 
       var cb = arguments[1];
@@ -460,7 +458,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           try {
             trace('getUserMediaOnSuccess', null, dumpStream(stream));
           } catch (error) {
-            console.warn(`RTCStats getUserMediaOnSuccess bind failed: `, error);
+            console.error(`RTCStats getUserMediaOnSuccess bind failed: `, error);
           }
           // we log the stream id, track ids and tracks readystate since that is ended GUM fails
           // to acquire the cam (in chrome)
@@ -472,7 +470,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           try {
             trace('getUserMediaOnFailure', null, err.name);
           } catch (error) {
-            console.warn(`RTCStats getUserMediaOnFailure bind failed: `, error);
+            console.error(`RTCStats getUserMediaOnFailure bind failed: `, error);
           }
 
           if (eb) {
@@ -490,7 +488,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       try {
         trace('navigator.mediaDevices.getUserMedia', null, arguments[0]);
       } catch (error) {
-        console.warn(`RTCStats navigator.mediaDevices.getUserMedia bind failed: `, error);
+        console.error(`RTCStats navigator.mediaDevices.getUserMedia bind failed: `, error);
       }
 
       return origGetUserMedia.apply(navigator.mediaDevices, arguments)
@@ -498,7 +496,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         try {
           trace('navigator.mediaDevices.getUserMediaOnSuccess', null, dumpStream(stream));
         } catch (error) {
-          console.warn(`RTCStats navigator.mediaDevices.getUserMediaOnSuccess bind failed: `, error);
+          console.error(`RTCStats navigator.mediaDevices.getUserMediaOnSuccess bind failed: `, error);
         }
 
         return stream;
@@ -506,7 +504,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         try {
           trace('navigator.mediaDevices.getUserMediaOnFailure', null, err.name);
         } catch (error) {
-          console.warn(`RTCStats navigator.mediaDevices.getUserMediaOnFailure bind failed: `, error);
+          console.error(`RTCStats navigator.mediaDevices.getUserMediaOnFailure bind failed: `, error);
         }
 
         return Promise.reject(err);
@@ -522,7 +520,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       try {
         trace('navigator.mediaDevices.getDisplayMedia', null, arguments[0]);
       } catch (error) {
-        console.warn(`RTCStats navigator.mediaDevices.getDisplayMedia bind failed: `, error);
+        console.error(`RTCStats navigator.mediaDevices.getDisplayMedia bind failed: `, error);
       }
 
       return origGetDisplayMedia.apply(navigator.mediaDevices, arguments)
@@ -530,7 +528,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         try {
           trace('navigator.mediaDevices.getDisplayMediaOnSuccess', null, dumpStream(stream));
         } catch (error) {
-          console.warn(`RTCStats navigator.mediaDevices.getDisplayMediaOnSuccess bind failed: `, error);
+          console.error(`RTCStats navigator.mediaDevices.getDisplayMediaOnSuccess bind failed: `, error);
         }
 
         return stream;
@@ -538,7 +536,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         try {
           trace('navigator.mediaDevices.getDisplayMediaOnFailure', null, err.name);
         } catch (error) {
-          console.warn(`RTCStats navigator.mediaDevices.getDisplayMediaOnFailure bind failed: `, error);
+          console.error(`RTCStats navigator.mediaDevices.getDisplayMediaOnFailure bind failed: `, error);
         }
 
         return Promise.reject(err);
