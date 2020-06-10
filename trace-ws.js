@@ -13,8 +13,12 @@ module.exports = function(wsURL) {
     if (connection && (connection.readyState === WebSocket.OPEN)) {
       connection.send(JSON.stringify(args));
     } else if (connection && (connection.readyState >= WebSocket.CLOSING)) {
-      // no-op. Possibly log?
-    } else if (args[0] !== 'getstats') {
+      // no-op
+    } else if (buffer.length < 300) {
+      // We need to cache the initial getStats calls as they are used by the delta compression algorithm and
+      // without the data from the initial calls the server wouldn't know how to decompress.
+      // Ideally we wouldn't reach this limit as the connect should fairly soon after the PC init, but just 
+      // in case add a limit to the buffer, so we don't transform this into a memory leek.
       buffer.push(args);
     }
   };
@@ -23,7 +27,9 @@ module.exports = function(wsURL) {
     connection && connection.close();
   };
   trace.connect = function() {
-    buffer = [];
+    // Because the connect function can be deferred now, we don't want to clear the buffer on connect so that
+    // we don't lose queued up operations. 
+    // buffer = [];
     if (connection) {
       connection.close();
     }
