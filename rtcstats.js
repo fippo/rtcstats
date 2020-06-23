@@ -109,7 +109,7 @@ function removeTimestamps(results) {
 }
 */
 
-module.exports = function(trace, getStatsInterval, prefixesToWrap) {
+module.exports = function(trace, getStatsInterval, prefixesToWrap, connectionFilter) {
   var peerconnectioncounter = 0;
   var isFirefox = !!window.mozRTCPeerConnection;
   var isEdge = !!window.RTCIceGatherer;
@@ -130,13 +130,11 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       const origConstraints = {...constraints};
       try {
         var pc = new origPeerConnection(config, constraints);
-        //
-        if (config && config.iceServers[0] && config.iceServers[0].urls ) {
-          for (const iceUrl of config.iceServers[0].urls) {
-            if (iceUrl.indexOf('taas.callstats.io') >= 0) {
-              return pc;
-            }
-          }
+
+        // In case the client wants to skip some rtcstats connections, a filter function can be provided which
+        // will return the original PC object without any strings attached.
+        if (connectionFilter && connectionFilter(config)) {
+           return pc
         }
 
         var id = 'PC_' + peerconnectioncounter++;
@@ -268,8 +266,8 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             var streamInfo = stream.getTracks().map(function(t) {
               return t.kind + ':' + t.id;
             }).join(',');
-            
-            trace(method, this.__rtcStatsId, stream.id + ' ' + streamInfo);        
+
+            trace(method, this.__rtcStatsId, stream.id + ' ' + streamInfo);
           }
           catch (error) {
             console.error(`RTCStats ${method} bind failed: `, error);
@@ -287,7 +285,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           try {
             var track = arguments[0];
             var streams = [].slice.call(arguments, 1);
-            trace(method, this.__rtcStatsId, track.kind + ':' + track.id + ' ' + (streams.map(function(s) { return 'stream:' + s.id; }).join(';') || '-'));      
+            trace(method, this.__rtcStatsId, track.kind + ':' + track.id + ' ' + (streams.map(function(s) { return 'stream:' + s.id; }).join(';') || '-'));
           }
           catch (error) {
             console.error(`RTCStats ${method} bind failed: `, error);
@@ -319,8 +317,8 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       var nativeMethod = origPeerConnection.prototype[method];
       if (nativeMethod) {
         origPeerConnection.prototype[method] = function() {
-          // The logic here extracts the arguments and establishes if the API 
-          // is callback or Promise based. 
+          // The logic here extracts the arguments and establishes if the API
+          // is callback or Promise based.
           var rtcStatsId = this.__rtcStatsId;
           var args = arguments;
           var opts;
@@ -330,8 +328,8 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             opts = arguments[2];
           }
 
-          // We can only put a "barrier" at this point because the above logic is 
-          // necessary in all cases, if something fails there we can't just bypass it. 
+          // We can only put a "barrier" at this point because the above logic is
+          // necessary in all cases, if something fails there we can't just bypass it.
           try {
             trace(method, this.__rtcStatsId, opts);
           } catch (error) {
@@ -382,7 +380,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
         origPeerConnection.prototype[method] = function() {
           var rtcStatsId = this.__rtcStatsId;
           var args = arguments;
-         
+
           try {
             trace(method, this.__rtcStatsId, args[0]);
           } catch (error) {
@@ -396,7 +394,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
             } catch (error) {
               console.error(`RTCStats ${method} promise success bind failed: `, error);
             }
-            
+
             // We can't safely bypass this part of logic because it's necessary for Proxying this request.
             // It determines weather the call is callback or promise based.
             if (args.length >= 2 && typeof args[1] === 'function') {
