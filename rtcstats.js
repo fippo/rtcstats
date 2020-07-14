@@ -1,6 +1,6 @@
 'use strict';
 
-import { BrowserDetection } from 'js-utils';
+import { BrowserDetection } from '@jitsi/js-utils';
 
 // transforms a maplike to an object. Mostly for getStats +
 // JSON.parse(JSON.stringify())
