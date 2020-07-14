@@ -1,5 +1,7 @@
 'use strict';
 
+import { BrowserDetection } from 'js-utils';
+
 // transforms a maplike to an object. Mostly for getStats +
 // JSON.parse(JSON.stringify())
 function map2obj(m) {
@@ -109,19 +111,25 @@ function removeTimestamps(results) {
 }
 */
 
-module.exports = function(trace, getStatsInterval, prefixesToWrap, connectionFilter) {
+export default function(trace, getStatsInterval, prefixesToWrap, connectionFilter) {
+
   var peerconnectioncounter = 0;
-  var isFirefox = !!window.mozRTCPeerConnection;
-  var isEdge = !!window.RTCIceGatherer;
-  var isSafari = !isFirefox && window.RTCPeerConnection && !window.navigator.webkitGetUserMedia;
+
+  var browserDetection = new BrowserDetection();
+  var isFirefox = browserDetection.isFirefox();
+  var isSafari = browserDetection.isSafari();
+  var isChrome = browserDetection.isChrome();
+
+  // Only initialize rtcstats if it's run in a supported browser
+  if (!(isFirefox || isSafari || isChrome)) {
+    throw new Error('RTCStats unsupported browser.');
+  }
+
   prefixesToWrap.forEach(function(prefix) {
     if (!window[prefix + 'RTCPeerConnection']) {
       return;
     }
-    if (prefix === 'webkit' && isEdge) {
-      // dont wrap webkitRTCPeerconnection in Edge.
-      return;
-    }
+
     var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
       // We want to make sure that any potential errors that occur at this point, caused by rtcstats logic,
@@ -152,8 +160,6 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap, connectionFil
 
         if (isFirefox) {
           config.browserType = 'moz';
-        } else if (isEdge) {
-          config.browserType = 'edge';
         } else {
           config.browserType = 'webkit';
         }
@@ -217,7 +223,7 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap, connectionFil
         // TODO: do we want one big interval and all peerconnections
         //    queried in that or one setInterval per PC?
         //    we have to collect results anyway so...
-        if (!isEdge && getStatsInterval) {
+        if (getStatsInterval) {
           var interval = window.setInterval(function() {
             if (pc.signalingState === 'closed') {
               window.clearInterval(interval);
@@ -226,13 +232,13 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap, connectionFil
             getStats();
           }, getStatsInterval);
         }
-        if (!isEdge) {
-          pc.addEventListener('iceconnectionstatechange', function() {
-            if (pc.iceConnectionState === 'connected') {
-              getStats();
-            }
-          });
-        }
+
+        pc.addEventListener('iceconnectionstatechange', function() {
+          if (pc.iceConnectionState === 'connected') {
+            getStats();
+          }
+        });
+
         return pc;
       } catch (error) {
         // If something went wrong, return a normal PeerConnection

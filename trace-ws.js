@@ -1,5 +1,6 @@
 var PROTOCOL_VERSION = '2.0';
-module.exports = function(wsURL) {
+
+export default function(wsURL, onCloseCallback) {
   var buffer = [];
   var connection = undefined;
   var trace = function() {
@@ -17,7 +18,7 @@ module.exports = function(wsURL) {
     } else if (buffer.length < 300) {
       // We need to cache the initial getStats calls as they are used by the delta compression algorithm and
       // without the data from the initial calls the server wouldn't know how to decompress.
-      // Ideally we wouldn't reach this limit as the connect should fairly soon after the PC init, but just 
+      // Ideally we wouldn't reach this limit as the connect should fairly soon after the PC init, but just
       // in case add a limit to the buffer, so we don't transform this into a memory leek.
       buffer.push(args);
     }
@@ -28,21 +29,17 @@ module.exports = function(wsURL) {
   };
   trace.connect = function() {
     // Because the connect function can be deferred now, we don't want to clear the buffer on connect so that
-    // we don't lose queued up operations. 
+    // we don't lose queued up operations.
     // buffer = [];
     if (connection) {
       connection.close();
     }
     connection = new WebSocket(wsURL + window.location.pathname, PROTOCOL_VERSION);
-    connection.onerror = function(e) {
-      console.log('WS ERROR', e);
-    };
 
-    /*
-    connection.onclose = function() {
+    connection.onclose = function(closeEvent) {
       // reconnect?
+      onCloseCallback({ code: closeEvent.code, reason: closeEvent.reason});
     };
-    */
 
     connection.onopen = function() {
       while (buffer.length) {
