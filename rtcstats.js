@@ -119,9 +119,10 @@ export default function(trace, getStatsInterval, prefixesToWrap, connectionFilte
   var isFirefox = browserDetection.isFirefox();
   var isSafari = browserDetection.isSafari();
   var isChrome = browserDetection.isChrome();
+  var isElectron = browserDetection.isElectron();
 
   // Only initialize rtcstats if it's run in a supported browser
-  if (!(isFirefox || isSafari || isChrome)) {
+  if (!(isFirefox || isSafari || isChrome || isElectron)) {
     throw new Error('RTCStats unsupported browser.');
   }
 
