@@ -4,7 +4,7 @@
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "dependencies": {
-    "js-utils": "github:jitsi/js-utils#8567f86ec2774ae1d1c47b22e3435928cf5d9771"
+    "@jitsi/js-utils": "1.0.0"
   },
   "devDependencies": {
     "browserify": "^16.2.3",
@@ -15,8 +15,8 @@
     "travis-multirunner": "^4.5.0"
   },
   "scripts": {
-   "test": "eslint rtcstats.js trace-ws.js nonmodule.js"
-    //"dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && terser out/rtcstats.js -o rtcstats.min.js"
+    "test": "eslint rtcstats.js trace-ws.js nonmodule.js",
+    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && terser out/rtcstats.js -o rtcstats.min.js"
   },
   "repository": {
     "type": "git",
