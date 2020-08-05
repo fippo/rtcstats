@@ -128,6 +128,15 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       var id = 'PC_' + peerconnectioncounter++;
       pc.__rtcStatsId = id;
 
+      // The optional callback that is invoked after having received the statistics via getStats()
+      var callback = undefined;
+      pc.statsCallback = callback;
+
+      // Retrieve the rtcstats id used from outside
+      pc.getRtcStatsId = function() {
+        return pc.__rtcStatsId;
+      };
+
       if (!config) {
         config = { nullConfig: true };
       }
@@ -188,6 +197,10 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       var getStats = function() {
         if (isFirefox || isSafari) {
           pc.getStats(null).then(function(res) {
+            // If the callback has been set we call it now to let the implementation modify the statics
+            // e.g. add own properties from the signalling layer
+            if(pc.statsCallback)
+              res = pc.statsCallback(res);
             var now = map2obj(res);
             var base = JSON.parse(JSON.stringify(now)); // our new prev
             trace('getstats', id, deltaCompression(prev, now));
@@ -195,6 +208,10 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
           });
         } else {
           pc.getStats(function(res) {
+            // If the callback has been set we call it now to let the implementation modify the statics
+            // e.g. add own properties from the signalling layer
+            if(pc.statsCallback)
+              res = pc.statsCallback(res);
             var now = mangleChromeStats(pc, res);
             var base = JSON.parse(JSON.stringify(now)); // our new prev
             trace('getstats', id, deltaCompression(prev, now));

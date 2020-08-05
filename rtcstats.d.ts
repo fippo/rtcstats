@@ -8,6 +8,28 @@ export type RTCStatsDataType = RTCConfiguration | RTCIceCandidate | RTCSignaling
                 RTCPeerConnectionState | undefined | ondatachannelArgs | string | RTCOfferOptions | undefined | createOfferArgs |
                 createAnswerArgs | RTCSessionDescriptionInit | addIceCandidateArgs | object;
 
+/**
+ * The extended functions of the peerConnection are exposed with this interface.
+ * Simply cast the peerConnection to this type to make use of em.
+ * const pc = new RTCPeerConnection(arg) as RTCStatsPeerConnection;
+ */
+export interface RTCStatsPeerConnection extends RTCPeerConnection
+{
+	/**
+	 * This is the rtcstatistic id ("PC_0", "PC_1", ...) assigned while constructing the peerConnection object
+	 */
+    public getRtcStatsId(): string;
+    /**
+     * This is an optional callback that will be called after statistics have been fetched from the peerConnection
+     * It can be used to
+     * * modify or filter data from the statistics 
+     * * add own data to the statistics you need to have in the results 
+     *   (reflect status changes on the signalling layer you want to see in association with the statistics)
+     *   (e.g. switching from simulcast layers)
+     */
+    public statsCallback: (rawData: RTCStatsReport) => RTCStatsReport;
+}
+            
 declare module "rtcstats" {
     /**
      * Initializes the logging and statistics callback into the trace method for all noted methods

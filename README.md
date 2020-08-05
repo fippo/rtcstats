@@ -20,6 +20,27 @@ var pc = new RTCPeerConnection(yourConfiguration, {
 })
 ```
 
+The new peerConnection object offers additional functions and callbacks:
+```javascript
+/**
+ * This is the rtcstatistic id ("PC_0", "PC_1", ...) assigned while constructing the peerConnection object
+ */
+var assignedID = pc.getRtcStatsId();
+
+/**
+ * This is an optional callback that will be called after statistics have been fetched from the peerConnection
+ * It can be used to
+ * * modify or filter data from the statistics 
+ * * add own data to the statistics you need to have in the results 
+ *   (reflect status changes on the signalling layer you want to see in association with the statistics)
+ *   (e.g. switching from simulcast layers)
+ */
+ pc.statsCallback = function(rawData: RTCStatsReport) => RTCStatsReport
+
+
+```
+
+
 If that integration is not possible there is a fallback integration which allows
 sending per-client information about the user id and conference id. This
 can be used by calling
