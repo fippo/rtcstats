@@ -1,8 +1,9 @@
 {
   "name": "rtcstats",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
+  "types": "rtcstats.d.ts",
   "dependencies": {},
   "devDependencies": {
     "browserify": "^16.2.3",
