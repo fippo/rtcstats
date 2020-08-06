@@ -52,23 +52,6 @@ function deltaCompression(oldStats, newStats) {
   return newStats;
 }
 
-function mangleChromeStats(pc, response) {
-  var standardReport = {};
-  var reports = response.result();
-  reports.forEach(function(report) {
-    var standardStats = {
-      id: report.id,
-      timestamp: report.timestamp.getTime(),
-      type: report.type,
-    };
-    report.names().forEach(function(name) {
-      standardStats[name] = report.stat(name);
-    });
-    standardReport[standardStats.id] = standardStats;
-  });
-  return standardReport;
-}
-
 function dumpStream(stream) {
   return {
     id: stream.id,
@@ -124,7 +107,18 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
     }
     var origPeerConnection = window[prefix + 'RTCPeerConnection'];
     var peerconnection = function(config, constraints) {
-      var pc = new origPeerConnection(config, constraints);
+
+      // Chrome does not accept if the constraints contain something it is not aware of
+      // So we make a real copy and remove stuff we use internally
+      var constraintsCopy = JSON.parse(JSON.stringify(constraints));
+      if(constraintsCopy.rtcStatsClientId)
+        delete constraintsCopy.rtcStatsClientId
+      if(constraintsCopy.rtcStatsPeerId)
+        delete constraintsCopy.rtcStatsPeerId
+      if(constraintsCopy.rtcStatsConferenceId)
+        delete constraintsCopy.rtcStatsConferenceId
+
+      var pc = new origPeerConnection(config, constraintsCopy);
       var id = 'PC_' + peerconnectioncounter++;
       pc.__rtcStatsId = id;
 
@@ -195,29 +189,16 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
 
       var prev = {};
       var getStats = function() {
-        if (isFirefox || isSafari) {
-          pc.getStats(null).then(function(res) {
-            // If the callback has been set we call it now to let the implementation modify the statics
-            // e.g. add own properties from the signalling layer
-            if(pc.statsCallback)
-              res = pc.statsCallback(res);
-            var now = map2obj(res);
-            var base = JSON.parse(JSON.stringify(now)); // our new prev
-            trace('getstats', id, deltaCompression(prev, now));
-            prev = base;
-          });
-        } else {
-          pc.getStats(function(res) {
-            // If the callback has been set we call it now to let the implementation modify the statics
-            // e.g. add own properties from the signalling layer
-            if(pc.statsCallback)
-              res = pc.statsCallback(res);
-            var now = mangleChromeStats(pc, res);
-            var base = JSON.parse(JSON.stringify(now)); // our new prev
-            trace('getstats', id, deltaCompression(prev, now));
-            prev = base;
-          });
-        }
+        pc.getStats(null).then(function(res) {
+          // If the callback has been set we call it now to let the implementation modify the statics
+          // e.g. add own properties from the signalling layer
+          var now = map2obj(res);
+          if(pc.statsCallback)
+            now = pc.statsCallback(now);
+          var base = JSON.parse(JSON.stringify(now)); // our new prev
+          trace('getstats', id, deltaCompression(prev, now));
+          prev = base;
+        });
       };
       // TODO: do we want one big interval and all peerconnections
       //    queried in that or one setInterval per PC?
