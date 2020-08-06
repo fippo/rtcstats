@@ -22,14 +22,14 @@ export interface RTCStatsPeerConnection extends RTCPeerConnection
     /**
      * This is an optional callback that will be called after statistics have been fetched from the peerConnection
      * It can be used to
-     * * modify or filter data from the statistics 
-     * * add own data to the statistics you need to have in the results 
+     * * modify or filter data from the statistics
+     * * add own data to the statistics you need to have in the results
      *   (reflect status changes on the signalling layer you want to see in association with the statistics)
      *   (e.g. switching from simulcast layers)
      */
-    public statsCallback: (rawData: RTCStatsReport) => RTCStatsReport;
+    public statsCallback?: (rawData: RTCStatsReport) => RTCStatsReport;
 }
-            
+
 declare module "rtcstats" {
     /**
      * Initializes the logging and statistics callback into the trace method for all noted methods
