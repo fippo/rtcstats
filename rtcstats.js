@@ -112,11 +112,11 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       // So we make a real copy and remove stuff we use internally
       var constraintsCopy = JSON.parse(JSON.stringify(constraints));
       if(constraintsCopy.rtcStatsClientId)
-        delete constraintsCopy.rtcStatsClientId
+        delete constraintsCopy.rtcStatsClientId;
       if(constraintsCopy.rtcStatsPeerId)
-        delete constraintsCopy.rtcStatsPeerId
+        delete constraintsCopy.rtcStatsPeerId;
       if(constraintsCopy.rtcStatsConferenceId)
-        delete constraintsCopy.rtcStatsConferenceId
+        delete constraintsCopy.rtcStatsConferenceId;
 
       var pc = new origPeerConnection(config, constraintsCopy);
       var id = 'PC_' + peerconnectioncounter++;
