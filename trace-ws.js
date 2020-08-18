@@ -1,8 +1,14 @@
 var PROTOCOL_VERSION = '2.0';
 
-export default function(wsURL, onCloseCallback) {
+function sendPing(ws) {
+  ws.send('__ping__');
+}
+
+export default function(wsURL, onCloseCallback, pingInterval = 30000) {
   var buffer = [];
   var connection = undefined;
+  var keepAliveInterval = undefined;
+
   var trace = function() {
     //console.log.apply(console, arguments);
     // TODO: drop getStats when not connected?
@@ -37,11 +43,14 @@ export default function(wsURL, onCloseCallback) {
     connection = new WebSocket(wsURL + window.location.pathname, PROTOCOL_VERSION);
 
     connection.onclose = function(closeEvent) {
+      keepAliveInterval && clearInterval(keepAliveInterval);
       // reconnect?
       onCloseCallback({ code: closeEvent.code, reason: closeEvent.reason});
     };
 
     connection.onopen = function() {
+      keepAliveInterval = setInterval(sendPing.bind(null, connection), pingInterval);
+
       while (buffer.length) {
         connection.send(JSON.stringify(buffer.shift()));
       }
