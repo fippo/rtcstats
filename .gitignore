@@ -2,3 +2,4 @@ node_modules
 dump.json
 out/*
 rtcstats.min.js
+.vscode

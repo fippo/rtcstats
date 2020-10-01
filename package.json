@@ -7,8 +7,12 @@
     "@jitsi/js-utils": "1.0.0"
   },
   "devDependencies": {
+    "babel-eslint": "^10.1.0",
     "browserify": "^16.2.3",
     "eslint": "^6.8.0",
+    "eslint-config-jitsi": "github:jitsi/eslint-config-jitsi",
+    "eslint-plugin-flowtype": "^5.2.0",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-require-path-exists": "^1.1.9",
     "tape": "^4.10.1",
     "terser": "^4.8.0",
@@ -20,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fippo/rtcstats.git"
+    "url": "git+https://github.com/jitsi/rtcstats.git"
   },
   "keywords": [
     "webrtc",
