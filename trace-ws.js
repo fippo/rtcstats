@@ -1,6 +1,6 @@
 /* eslint-disable prefer-rest-params */
 
-const PROTOCOL_VERSION = '2.0';
+const PROTOCOL_VERSION = '3.0';
 
 /**
  *

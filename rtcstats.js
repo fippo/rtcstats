@@ -39,11 +39,12 @@ function deltaCompression(oldStats, newStatsArg) {
             if (report[name] === oldStats[id][name]) {
                 delete newStats[id][name];
             }
-            if (Object.keys(report).length === 0) {
-                delete newStats[id];
-            } else if (Object.keys(report).length === 1 && report.timestamp) {
-                delete newStats[id];
-            }
+
+            // if (Object.keys(report).length === 0) {
+            //     delete newStats[id];
+            // } else if (Object.keys(report).length === 1 && report.timestamp) {
+            //     delete newStats[id];
+            // }
         });
     });
 
@@ -70,31 +71,6 @@ function deltaCompression(oldStats, newStatsArg) {
 
 /**
  *
- * @param {*} pc
- * @param {*} response
- */
-function mangleChromeStats(pc, response) {
-    const standardReport = {};
-    const reports = response.result();
-
-    reports.forEach(report => {
-        const standardStats = {
-            id: report.id,
-            timestamp: report.timestamp.getTime(),
-            type: report.type
-        };
-
-        report.names().forEach(name => {
-            standardStats[name] = report.stat(name);
-        });
-        standardReport[standardStats.id] = standardStats;
-    });
-
-    return standardReport;
-}
-
-/**
- *
  * @param {*} stream
  */
 function dumpStream(stream) {
@@ -112,30 +88,6 @@ function dumpStream(stream) {
         })
     };
 }
-
-/*
-function filterBoringStats(results) {
-  Object.keys(results).forEach(function(id) {
-    switch (results[id].type) {
-      case 'certificate':
-      case 'codec':
-        delete results[id];
-        break;
-      default:
-        // noop
-    }
-  });
-  return results;
-}
-
-function removeTimestamps(results) {
-  // FIXME: does not work in FF since the timestamp can't be deleted.
-  Object.keys(results).forEach(function(id) {
-    delete results[id].timestamp;
-  });
-  return results;
-}
-*/
 
 /**
  *
@@ -249,23 +201,15 @@ export default function(trace, getStatsInterval, prefixesToWrap, connectionFilte
 
                 let prev = {};
                 const getStats = function() {
-                    if (isFirefox || isSafari) {
-                        pc.getStats(null).then(res => {
-                            const now = map2obj(res);
-                            const base = JSON.parse(JSON.stringify(now)); // our new prev
+                    // Use promised based getStats which should report webrtc statistics according to the standard.
+                    // Note, firefox doesn't fully support standard stats.
+                    pc.getStats(null).then(res => {
+                        const now = map2obj(res);
+                        const base = JSON.parse(JSON.stringify(now)); // our new prev
 
-                            trace('getstats', id, deltaCompression(prev, now));
-                            prev = base;
-                        });
-                    } else {
-                        pc.getStats(res => {
-                            const now = mangleChromeStats(pc, res);
-                            const base = JSON.parse(JSON.stringify(now)); // our new prev
-
-                            trace('getstats', id, deltaCompression(prev, now));
-                            prev = base;
-                        });
-                    }
+                        trace('getstats', id, deltaCompression(prev, now));
+                        prev = base;
+                    });
                 };
 
                 // TODO: do we want one big interval and all peerconnections
@@ -625,14 +569,4 @@ export default function(trace, getStatsInterval, prefixesToWrap, connectionFilte
 
         navigator.mediaDevices.getDisplayMedia = gdm.bind(navigator.mediaDevices);
     }
-
-    // TODO: are there events defined on MST that would allow us to listen when enabled was set?
-    //    no :-(
-    /*
-    Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
-      set: function(value) {
-        trace('MediaStreamTrackEnable', this, value);
-      }
-     });
-    */
 }
