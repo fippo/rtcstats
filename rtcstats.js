@@ -20,6 +20,31 @@ function map2obj(m) {
 }
 
 /**
+ *
+ * @param {*} pc
+ * @param {*} response
+ */
+function mangleChromeStats(pc, response) {
+    const standardReport = {};
+    const reports = response.result();
+
+    reports.forEach(report => {
+        const standardStats = {
+            id: report.id,
+            timestamp: report.timestamp.getTime(),
+            type: report.type
+        };
+
+        report.names().forEach(name => {
+            standardStats[name] = report.stat(name);
+        });
+        standardReport[standardStats.id] = standardStats;
+    });
+
+    return standardReport;
+}
+
+/**
  * Apply a delta compression to the stats report. Reduces size by ~90%.
  * To reduce further, report keys could be compressed.
  * @param {*} oldStats
