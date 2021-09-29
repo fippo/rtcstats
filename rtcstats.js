@@ -134,7 +134,7 @@ function dumpStream(stream) {
  */
 export default function(
         { statsEntry: sendStatsEntry },
-        { connectionFilter, pollInterval, useLegacy, prefixesToWrap = [ '' ] }
+        { connectionFilter, pollInterval, useLegacy, sendSdp = false, prefixesToWrap = [ '' ] }
 ) {
     let peerconnectioncounter = 0;
 
@@ -404,7 +404,10 @@ export default function(
                     return nativeMethod.apply(this, opts ? [ opts ] : undefined).then(
                         description => {
                             try {
-                                sendStatsEntry(`${method}OnSuccess`, rtcStatsId, description);
+
+                                const data = sendSdp ? description : '';
+
+                                sendStatsEntry(`${method}OnSuccess`, rtcStatsId, data);
                             } catch (error) {
                                 console.error(`RTCStats ${method} promise success bind failed: `, error);
                             }
@@ -449,7 +452,9 @@ export default function(
                     const args = arguments;
 
                     try {
-                        sendStatsEntry(method, this.__rtcStatsId, args[0]);
+                        const data = sendSdp ? args[0] : '';
+
+                        sendStatsEntry(method, this.__rtcStatsId, data);
                     } catch (error) {
                         console.error(`RTCStats ${method} bind failed: `, error);
                     }
