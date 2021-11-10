@@ -1,6 +1,6 @@
 {
-  "name": "rtcstats",
-  "version": "8.1.0",
+  "name": "@jitsi/rtcstats",
+  "version": "8.1.1",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "dependencies": {
