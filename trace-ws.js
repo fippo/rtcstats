@@ -1,6 +1,8 @@
 /* eslint-disable prefer-rest-params */
 import uuid from 'uuid';
 
+import obfuscator from './obfuscator';
+
 const PROTOCOL_ITERATION = '3.1';
 
 /**
@@ -9,7 +11,7 @@ const PROTOCOL_ITERATION = '3.1';
  * @param {*} onCloseCallback
  * @param {*} pingInterval
  */
-export default function({ endpoint, onCloseCallback, useLegacy, pingInterval = 30000 }) {
+export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true, pingInterval = 30000 }) {
     const buffer = [];
     const statsSessionId = uuid.v4();
     let connection;
@@ -49,6 +51,9 @@ export default function({ endpoint, onCloseCallback, useLegacy, pingInterval = 3
     };
 
     trace.statsEntry = function(...data) {
+
+        // Obfuscate the ips is required.
+        obfuscate && obfuscator(data);
 
         data.push(new Date().getTime());
 

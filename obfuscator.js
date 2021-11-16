@@ -6,13 +6,14 @@ import SDPUtils from 'sdp';
  * obfuscate ip, keeping address family intact.
  * @param {*} ip
  */
-function obfuscateIP(ip) {
+function maskIP(ip) {
     if (ip.indexOf('[') === 0 || ip.indexOf(':') !== -1) {
         // IPv6
         // obfuscate last five bits like Chrome does.
         return `${ip.split(':').slice(0, 3)
             .join(':')}:x:x:x:x:x`;
     }
+
     const parts = ip.split('.');
 
     if (parts.length === 4) {
@@ -22,6 +23,20 @@ function obfuscateIP(ip) {
     }
 
     return ip;
+}
+
+/**
+ * Returns a simple IP mask.
+ *
+ * @returns masked IP.
+ */
+function obfuscateIP(ip) {
+    if (ip.indexOf('[') === 0 || ip.indexOf(':') !== -1) {
+
+        return 'x:x:x:x:x:x:x:x';
+    }
+
+    return 'x.x.x.x';
 }
 
 /**
