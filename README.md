@@ -89,6 +89,7 @@ RTCPeerConnection methods are also hooked into and parameters sent to the server
 * addStream, removeStream
 * addTrack
 * removeTrack
+* addTransceiver
 * createOffer
 * createAnswer
 * setLocalDescription
