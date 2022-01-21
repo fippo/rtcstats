@@ -192,6 +192,8 @@ export default function(
 
                 sendStatsEntry('create', id, config);
 
+                pc.__dtlsTransport = null;
+
                 // TODO: do we want to log constraints here? They are chrome-proprietary.
                 // eslint-disable-next-line max-len
                 // http://stackoverflow.com/questions/31003928/what-do-each-of-these-experimental-goog-rtcpeerconnectionconstraints-do
@@ -492,6 +494,24 @@ export default function(
                                 sendStatsEntry(`${method}OnSuccess`, rtcStatsId, undefined);
                             } catch (error) {
                                 console.error(`RTCStats ${method} promise success bind failed: `, error);
+                            }
+
+                            if (!this.__dtlsTransport && method.endsWith('Description')) {
+                                this.getSenders().forEach(sender => {
+                                    if (!this.__dtlsTransport && sender.transport) {
+                                        this.__dtlsTransport = sender.transport;
+
+                                        sender.transport.addEventListener('error', error => {
+                                            sendStatsEntry('ondtlserror', rtcStatsId, error);
+                                        });
+
+                                        sender.transport.addEventListener('statechange', () => {
+                                            const newstate = sender.transport.state;
+
+                                            sendStatsEntry('ondtlsstatechange', rtcStatsId, newstate);
+                                        });
+                                    }
+                                });
                             }
 
                             // We can't safely bypass this part of logic because it's necessary for
