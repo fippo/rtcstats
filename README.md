@@ -14,16 +14,16 @@ const pc = new RTCPeerConnection();
 rtcStats(pc, console.log, 5000);
 ```
 
-### typescript
-You may take the typescript file `rtc-stats.ts` and include it in your project.
-
-```ts
-import { rtcStats } from './my-project-utils/rtc-stats';
-```
-
 ### build
 Install Depencies and run `yarn build`, output will be in the local `dist/` folder.
 ```
 yarn
 yarn build
+```
+
+### typescript
+You may take the typescript file `rtc-stats.ts` and drop it in your project.
+
+```ts
+import { rtcStats } from './my-project-utils/rtc-stats';
 ```
