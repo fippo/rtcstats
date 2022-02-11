@@ -2,6 +2,7 @@
   "name": "rtcstats",
   "version": "0.1.0",
   "main": "./dist/rtcstats.js",
+  "types": "./dist/rtcstats.d.ts",
   "repository": "https://github.com/webex-connect/rtcstats.git",
   "author": "Philipp Hancke",
   "license": "MIT",
