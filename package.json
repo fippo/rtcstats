@@ -1,30 +1,17 @@
 {
   "name": "rtcstats",
-  "version": "5.2.0",
-  "description": "gather WebRTC API traces and statistics",
-  "main": "rtcstats.js",
-  "types": "rtcstats.d.ts",
-  "dependencies": {},
-  "devDependencies": {
-    "browserify": "^16.2.3",
-    "eslint": "^6.8.0",
-    "eslint-plugin-require-path-exists": "^1.1.9",
-    "tape": "^4.10.1",
-    "travis-multirunner": "^4.5.0",
-    "uglify-js": "^2.6.1"
-  },
-  "scripts": {
-    "test": "./node_modules/.bin/eslint rtcstats.js trace-ws.js nonmodule.js && npm run dist",
-    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && uglifyjs -o min.js out/rtcstats.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/fippo/rtcstats.git"
-  },
-  "keywords": [
-    "webrtc",
-    "rtcpeerconnection"
-  ],
+  "version": "0.1.0",
+  "main": "./dist/rtcstats.js",
+  "repository": "https://github.com/webex-connect/rtcstats.git",
   "author": "Philipp Hancke",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc rtcstats.ts --outDir dist"
+  },
+  "dependencies": {
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  }
 }
