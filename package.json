@@ -6,7 +6,7 @@
   "author": "Philipp Hancke",
   "license": "MIT",
   "scripts": {
-    "build": "tsc rtcstats.ts --outDir dist"
+    "build": "tsc rtcstats.ts --outDir dist --declaration"
   },
   "dependencies": {
     "uuid": "^8.3.2"
