@@ -1,5 +1,5 @@
 {
-  "name": "rtcstats",
+  "name": "@webex-connect/rtcstats",
   "version": "0.1.0",
   "main": "./dist/rtcstats.js",
   "types": "./dist/rtcstats.d.ts",
