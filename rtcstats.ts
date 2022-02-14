@@ -105,7 +105,7 @@ export const rtcStats = (
    * @param args - Array of parameters to log of any type.
    */
   const trace = (...args: unknown[]): void => {
-    logger('[rtc-stats]', id, ...args);
+    logger('[rtcstats]', id, ...args);
   };
 
   trace('creating stats report');

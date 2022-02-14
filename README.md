@@ -6,7 +6,7 @@ This is a fork of https://github.com/fippo/rtcstats configured for typescript.  
 ## Integration
 
 ```ts
-import { rtcStats } from 'rtc-stats';
+import { rtcStats } from 'rtcstats';
 
 const pc = new RTCPeerConnection();
 
@@ -22,8 +22,8 @@ yarn build
 ```
 
 ### typescript
-You may take the typescript file `rtc-stats.ts` and drop it in your project.
+You may take the typescript file `rtcstats.ts` and drop it in your project.
 
 ```ts
-import { rtcStats } from './my-project-utils/rtc-stats';
+import { rtcStats } from './my-project-utils/rtcstats';
 ```
