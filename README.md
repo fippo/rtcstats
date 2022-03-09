@@ -1,3 +1,5 @@
+[![Publish Package](https://github.com/webex-connect/rtcstats/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/webex-connect/rtcstats/actions/workflows/npm-publish.yml)
+
 ## rtcstats.js
 Low-level logging on peerconnection API calls and periodic getStats calls for analytics/debugging purposes
 
