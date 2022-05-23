@@ -1,5 +1,5 @@
 /* eslint-disable prefer-rest-params */
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import obfuscator from './obfuscator';
 
@@ -13,7 +13,7 @@ const PROTOCOL_ITERATION = '3.1';
  */
 export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true, pingInterval = 30000 }) {
     const buffer = [];
-    const statsSessionId = uuid.v4();
+    const statsSessionId = uuidv4();
     let connection;
     let keepAliveInterval;
 

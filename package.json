@@ -1,28 +1,20 @@
 {
   "name": "@jitsi/rtcstats",
-  "version": "9.0.1",
+  "version": "9.2.0",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "dependencies": {
-    "@jitsi/js-utils": "1.0.0",
+    "@jitsi/js-utils": "^2.0.0",
     "sdp": "^3.0.3",
-    "uuid": "3.1.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
-    "browserify": "^16.2.3",
-    "eslint": "^6.8.0",
-    "eslint-config-jitsi": "github:jitsi/eslint-config-jitsi",
-    "eslint-plugin-flowtype": "^5.2.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-require-path-exists": "^1.1.9",
-    "tape": "^4.10.1",
-    "terser": "^4.8.0",
-    "travis-multirunner": "^4.5.0"
+    "@jitsi/eslint-config": "^4.1.1",
+    "eslint": "8.1.0",
+    "eslint-plugin-import": "2.25.2"
   },
   "scripts": {
-    "test": "eslint rtcstats.js trace-ws.js nonmodule.js",
-    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && terser out/rtcstats.js -o rtcstats.min.js"
+    "lint": "eslint rtcstats.js trace-ws.js"
   },
   "repository": {
     "type": "git",

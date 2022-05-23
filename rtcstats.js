@@ -1,6 +1,6 @@
 /* eslint-disable prefer-rest-params */
 /* eslint-disable no-param-reassign */
-import { BrowserDetection } from '@jitsi/js-utils';
+import { BrowserDetection } from '@jitsi/js-utils/browser-detection';
 
 /**
  * transforms a maplike to an object. Mostly for getStats + JSON.parse(JSON.stringify())
@@ -386,16 +386,18 @@ export default function(
                     try {
                         const trackOrKind = arguments[0];
                         let opts;
+
                         if (typeof trackOrKind === 'string') {
+
                             opts = trackOrKind;
                         } else {
                             opts = `${trackOrKind.kind}:${trackOrKind.id}`;
                         }
                         if (arguments.length === 2 && typeof arguments[1] === 'object') {
-                            opts += ' ' + JSON.stringify(arguments[1]);
+                            opts += ` ${JSON.stringify(arguments[1])}`;
                         }
 
-                        sendStatsEntry( method, this.__rtcStatsId, opts);
+                        sendStatsEntry(method, this.__rtcStatsId, opts);
                     } catch (error) {
                         console.error(`RTCStats ${method} bind failed: `, error);
                     }
