@@ -272,6 +272,33 @@ module.exports = function(trace, getStatsInterval, prefixesToWrap) {
       }
     });
 
+    [ 'addTransceiver' ].forEach(method => {
+        const nativeMethod = origPeerConnection.prototype[method];
+
+        if (nativeMethod) {
+            origPeerConnection.prototype[method] = function() {
+                try {
+                    const trackOrKind = arguments[0];
+                    let opts;
+                    if (typeof trackOrKind === 'string') {
+                        opts = trackOrKind;
+                    } else {
+                        opts = `${trackOrKind.kind}:${trackOrKind.id}`;
+                    }
+                    if (arguments.length === 2 && typeof arguments[1] === 'object') {
+                        opts += ' ' + JSON.stringify(arguments[1]);
+                    }
+
+                    sendStatsEntry( method, this.__rtcStatsId, opts);
+                } catch (error) {
+                    console.error(`RTCStats ${method} bind failed: `, error);
+                }
+
+                return nativeMethod.apply(this, arguments);
+            };
+        }
+    });
+
     ['createOffer', 'createAnswer'].forEach(function(method) {
       var nativeMethod = origPeerConnection.prototype[method];
       if (nativeMethod) {
