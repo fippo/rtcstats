@@ -284,8 +284,8 @@ export default function(
                     }, pollInterval);
                 }
 
-                pc.addEventListener('iceconnectionstatechange', () => {
-                    if (pc.iceConnectionState === 'connected') {
+                pc.addEventListener('connectionstatechange', () => {
+                    if (['connected', 'failed'].includes(pc.connectionState)) {
                         getStats();
                     }
                 });
