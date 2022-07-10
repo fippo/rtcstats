@@ -109,7 +109,7 @@ function removeTimestamps(results) {
 }
 */
 
-module.exports = function(trace, getStatsInterval, prefixesToWrap) {
+export function wrapWebRTC(trace, getStatsInterval, prefixesToWrap) {
   var peerconnectioncounter = 0;
   var isFirefox = !!window.mozRTCPeerConnection;
   var isEdge = !!window.RTCIceGatherer;

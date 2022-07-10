@@ -4,18 +4,23 @@
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "types": "rtcstats.d.ts",
-  "dependencies": {},
   "devDependencies": {
-    "browserify": "^16.2.3",
+    "chai": "^4.3.6",
     "eslint": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.9",
+    "karma": "^6.4.0",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.1.1",
+    "karma-coverage": "^2.2.0",
+    "karma-mocha": "^2.0.1",
+    "karma-mocha-reporter": "^2.2.5",
+    "mocha": "^10.0.0",
+    "sinon-chai": "^3.7.0",
     "tape": "^4.10.1",
-    "travis-multirunner": "^4.5.0",
-    "uglify-js": "^2.6.1"
+    "travis-multirunner": "^4.5.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/eslint rtcstats.js trace-ws.js nonmodule.js && npm run dist",
-    "dist": "mkdir -p out && browserify -o out/rtcstats.js nonmodule.js && uglifyjs -o min.js out/rtcstats.js"
+    "test": "karma start test/karma.conf.js"
   },
   "repository": {
     "type": "git",
