@@ -2,7 +2,8 @@ const chromeFlags = [
     '--use-fake-device-for-media-stream',
     '--use-fake-ui-for-media-stream',
     '--no-sandbox',
-    '--headless', '--disable-gpu', '--remote-debugging-port=9222'
+    '--headless', '--disable-gpu', '--remote-debugging-port=9222',
+    '--auto-select-desktop-capture-source=rtcstats-e2e-tests',
 ];
 
 module.exports = function(config) {

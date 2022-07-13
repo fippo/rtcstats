@@ -1,9 +1,9 @@
 import {wrapWebRTC} from '../../rtcstats.js';
 import {createTestSink} from '../sink.js';
 
-describe('rtcstats', () => {
-    let rtcStats;
-    let testSink;
+let rtcStats;
+let testSink;
+before(() => {
     before(() => {
         testSink = createTestSink();
         rtcStats = wrapWebRTC(testSink.trace, 1000, ['']);
@@ -11,7 +11,9 @@ describe('rtcstats', () => {
     beforeEach(() => {
         testSink.reset();
     });
+});
 
+describe('RTCPeerConnection', () => {
     describe('peerconnection creation', () => {
         it('traces the creation', () => {
             const now = Date.now();
@@ -63,15 +65,15 @@ describe('rtcstats', () => {
             events.forEach(e => console.log(e));
         });
     });
+});
 
-    describe('legacy getUserMedia', () => {
-        it('does something', async () => {
+describe('getUserMedia and getDisplayMedia', () => {
+    describe('navigator.getUserMedia', () => {
+        it('traces getUserMediaOnSuccess when successful', async () => {
             const constraints = {audio: true, video: true};
             const stream = await new Promise(r => navigator.getUserMedia(constraints, r));
-            console.log(stream);
 
             const events = testSink.reset();
-            events.forEach(e => console.log(e));
             expect(events.length).to.equal(2);
 
             const gumCall = events.shift();
@@ -82,7 +84,147 @@ describe('rtcstats', () => {
             const gumResult = events.shift();
             expect(gumResult[0]).to.equal('getUserMediaOnSuccess');
             expect(gumResult[1]).to.equal(null);
-            console.log(gumResult[2]);
+            expect(gumResult[2]).to.deep.equal({
+                id: stream.id,
+                tracks: stream.getTracks().map(track => ({
+                    id: track.id,
+                    kind: track.kind,
+                    label: track.label,
+                    enabled: track.enabled,
+                    muted: track.muted,
+                    readyState: track.readyState,
+                })),
+            });
+        });
+
+        it('traces getUserMediaOnFailure when unsuccessful', async () => {
+            const constraints = {video: {width: {min: 65536}, height: 65536}};
+            const err = await new Promise(r => navigator.getUserMedia(constraints, undefined , r));
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+
+            const gumCall = events.shift();
+            expect(gumCall[0]).to.equal('getUserMedia');
+            expect(gumCall[1]).to.equal(null);
+            expect(gumCall[2]).to.deep.equal(constraints);
+
+            const gumResult = events.shift();
+            expect(gumResult[0]).to.equal('getUserMediaOnFailure');
+            expect(gumResult[1]).to.equal(null);
+            expect(gumResult[2]).to.equal(err.name);
+        });
+    });
+
+    describe('mediaDevices.getUserMedia', () => {
+        it('traces getUserMediaOnSuccess when successful', async () => {
+            const constraints = {audio: true, video: true};
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+
+            const gumCall = events.shift();
+            expect(gumCall[0]).to.equal('navigator.mediaDevices.getUserMedia');
+            expect(gumCall[1]).to.equal(null);
+            expect(gumCall[2]).to.deep.equal(constraints);
+
+            const gumResult = events.shift();
+            expect(gumResult[0]).to.equal('navigator.mediaDevices.getUserMediaOnSuccess');
+            expect(gumResult[1]).to.equal(null);
+            expect(gumResult[2]).to.deep.equal({
+                id: stream.id,
+                tracks: stream.getTracks().map(track => ({
+                    id: track.id,
+                    kind: track.kind,
+                    label: track.label,
+                    enabled: track.enabled,
+                    muted: track.muted,
+                    readyState: track.readyState,
+                })),
+            });
+        });
+
+        it('traces getUserMediaOnFailure when unsuccessful', async () => {
+            const constraints = {video: {width: {min: 65536}, height: 65536}};
+            let err;
+            try {
+                await navigator.mediaDevices.getUserMedia(constraints);
+            } catch(e) { err = e; }
+            expect(err).not.to.equal(undefined);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+
+            const gumCall = events.shift();
+            expect(gumCall[0]).to.equal('navigator.mediaDevices.getUserMedia');
+            expect(gumCall[1]).to.equal(null);
+            expect(gumCall[2]).to.deep.equal(constraints);
+
+            const gumResult = events.shift();
+            expect(gumResult[0]).to.equal('navigator.mediaDevices.getUserMediaOnFailure');
+            expect(gumResult[1]).to.equal(null);
+            expect(gumResult[2]).to.equal(err.name);
+        });
+    });
+
+    describe('mediaDevices.getDisplayMedia', () => {
+        let title;
+        beforeEach(() => {
+            title = window.title;
+            document.title = 'rtcstats-e2e-tests';
+        });
+        afterEach(() => {
+            document.title = title;
+        });
+        it('traces getDisplayMediaOnSuccess', async () => {
+            const constraints = {video: true};
+            const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+
+            const gumCall = events.shift();
+            expect(gumCall[0]).to.equal('navigator.mediaDevices.getDisplayMedia');
+            expect(gumCall[1]).to.equal(null);
+            expect(gumCall[2]).to.deep.equal(constraints);
+
+            const gumResult = events.shift();
+            expect(gumResult[0]).to.equal('navigator.mediaDevices.getDisplayMediaOnSuccess');
+            expect(gumResult[1]).to.equal(null);
+            expect(gumResult[2]).to.deep.equal({
+                id: stream.id,
+                tracks: stream.getTracks().map(track => ({
+                    id: track.id,
+                    kind: track.kind,
+                    label: track.label,
+                    enabled: track.enabled,
+                    muted: track.muted,
+                    readyState: track.readyState,
+                })),
+            });
+        });
+
+        it('traces getDisplayMediaOnFailure when unsuccessful', async () => {
+            const constraints = {video: {width: {min: 65536}, height: 65536}};
+            let err;
+            try {
+                await navigator.mediaDevices.getDisplayMedia(constraints);
+            } catch(e) { err = e; }
+            expect(err).not.to.equal(undefined);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+
+            const gumCall = events.shift();
+            expect(gumCall[0]).to.equal('navigator.mediaDevices.getDisplayMedia');
+            expect(gumCall[1]).to.equal(null);
+            expect(gumCall[2]).to.deep.equal(constraints);
+
+            const gumResult = events.shift();
+            expect(gumResult[0]).to.equal('navigator.mediaDevices.getDisplayMediaOnFailure');
+            expect(gumResult[1]).to.equal(null);
+            expect(gumResult[2]).to.equal(err.name);
         });
     });
 });
