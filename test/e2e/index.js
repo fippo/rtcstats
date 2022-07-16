@@ -40,18 +40,66 @@ describe('RTCPeerConnection', () => {
     });
 
     describe('createOffer', () => {
-        it('supports legacy constraints', async () => {
+        it('serializes without legacy constraints', async () => {
+            const pc = new RTCPeerConnection();
+            const offer = await pc.createOffer();
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(3);
+            expect(events[1]).to.have.length(4);
+            expect(events[1][0]).to.equal('createOffer');
+            expect(events[1][2]).to.equal(undefined);
+        });
+
+        it('serializes legacy constraints', async () => {
             const pc = new RTCPeerConnection();
             const legacyConstraints = {offerToReceiveAudio: true};
             const offer = await pc.createOffer(legacyConstraints);
 
             const events = testSink.reset();
             expect(events.length).to.equal(3);
-            events.shift(); // ignore create event.
-            const offerEvent = events.shift();
-            expect(offerEvent).to.have.length(4);
-            expect(offerEvent[0]).to.equal('createOffer');
-            expect(offerEvent[2]).to.deep.equal(legacyConstraints);
+            expect(events[1]).to.have.length(4);
+            expect(events[1][0]).to.equal('createOffer');
+            expect(events[1][2]).to.deep.equal(legacyConstraints);
+        });
+
+        it('serializes legacy constraints with legacy callbacks', async () => {
+            const pc = new RTCPeerConnection();
+            const legacyConstraints = {offerToReceiveAudio: true};
+            const noop = () => {};
+            const offer = await pc.createOffer(noop, noop, legacyConstraints);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(3);
+            expect(events[1]).to.have.length(4);
+            expect(events[1][0]).to.equal('createOffer');
+            expect(events[1][2]).to.deep.equal(legacyConstraints);
+        });
+
+        it('serializes the result', async () => {
+            const pc = new RTCPeerConnection();
+            const offer = await pc.createOffer();
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(3);
+            expect(events[2]).to.have.length(4);
+            expect(events[2][0]).to.equal('createOfferOnSuccess');
+            expect(events[2][2].type).to.equal('offer');
+            expect(events[2][2].sdp).to.be.a('string');
+        });
+    });
+
+    describe('setLocalDescription', () => {
+        it('serializes implicit SLD', async () => {
+            const pc = new RTCPeerConnection();
+            await pc.setLocalDescription();
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(4);
+            expect(events[3]).to.have.length(4);
+            expect(events[3][0]).to.equal('setLocalDescriptionOnSuccess');
+            // TODO: to be defined, this should get the SDP.
+            expect(events[3][2]).to.equal(undefined);
         });
     });
 
@@ -62,7 +110,11 @@ describe('RTCPeerConnection', () => {
             stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
             const events = testSink.reset();
-            events.forEach(e => console.log(e));
+            expect(events.length).to.equal(5);
+            expect(events[3][0]).to.equal('addTrack');
+            expect(events[3][2]).to.equal(stream.getTracks()[0].kind + ':' + stream.getTracks()[0].id + ' stream:' + stream.id);
+            expect(events[4][0]).to.equal('addTrack');
+            expect(events[4][2]).to.equal(stream.getTracks()[1].kind + ':' + stream.getTracks()[1].id + ' stream:' + stream.id);
         });
     });
 });
