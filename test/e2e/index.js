@@ -21,11 +21,10 @@ describe('RTCPeerConnection', () => {
 
             const events = testSink.reset();
             expect(events.length).to.equal(1);
-            const createEvent = events.shift();
-            expect(createEvent[0]).to.equal('create');
-            expect(createEvent[1]).to.equal(pc.__rtcStatsId);
-            expect(createEvent[2]).to.be.an('object');
-            expect(createEvent[3] - now).to.be.below(1000); // less than 1000ms.
+            expect(events[0][0]).to.equal('create');
+            expect(events[0][1]).to.equal(pc.__rtcStatsId);
+            expect(events[0][2]).to.be.an('object');
+            expect(events[0][3] - now).to.be.below(1000); // less than 1000ms.
         });
 
         it('increments the peerconnection index', () => {
@@ -36,6 +35,44 @@ describe('RTCPeerConnection', () => {
             expect(events.length).to.equal(2);
             expect(events[0][1]).to.equal(pc1.__rtcStatsId);
             expect(events[1][1]).to.equal(pc2.__rtcStatsId);
+        });
+
+        it('serializes the RTCConfiguration', () => {
+            const configuration = {iceServers: []};
+            const pc = new RTCPeerConnection(configuration);
+            configuration.browserType = 'webkit';
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(1);
+            expect(events[0][2]).to.deep.equal(configuration);
+        });
+
+        it('removes turn credentials from the configuration', () => {
+            const configuration = {iceServers: [{
+              urls: 'turn:example.com',
+              username: 'test',
+              credential: 'test',
+            }]};
+            const pc = new RTCPeerConnection(configuration);
+            configuration.browserType = 'webkit';
+
+            // Check that the original config was not modified, then delete it.
+            expect(configuration.iceServers[0].credential).to.equal('test');
+            delete configuration.iceServers[0].credential;
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(1);
+            expect(events[0][2]).to.deep.equal(configuration);
+        });
+
+        it('serializes the legacy constraints argument if present', () => {
+            const legacyConstraints = {};
+            const pc = new RTCPeerConnection(null, legacyConstraints);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+            expect(events[1][0]).to.equal('constraints');
+            expect(events[1][2]).to.equal(legacyConstraints);
         });
     });
 
@@ -104,7 +141,7 @@ describe('RTCPeerConnection', () => {
     });
 
     describe('addTrack', () => {
-        it('serializes the track in the expected format', async () => {
+        it('serializes the track in the expected format if there is a stream', async () => {
             const pc = new RTCPeerConnection();
             const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
             stream.getTracks().forEach(t => pc.addTrack(t, stream));
@@ -115,6 +152,19 @@ describe('RTCPeerConnection', () => {
             expect(events[3][2]).to.equal(stream.getTracks()[0].kind + ':' + stream.getTracks()[0].id + ' stream:' + stream.id);
             expect(events[4][0]).to.equal('addTrack');
             expect(events[4][2]).to.equal(stream.getTracks()[1].kind + ':' + stream.getTracks()[1].id + ' stream:' + stream.id);
+        });
+
+        it('serializes the track in the expected format if there is no stream', async () => {
+            const pc = new RTCPeerConnection();
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+            stream.getTracks().forEach(t => pc.addTrack(t));
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(5);
+            expect(events[3][0]).to.equal('addTrack');
+            expect(events[3][2]).to.equal(stream.getTracks()[0].kind + ':' + stream.getTracks()[0].id + ' -');
+            expect(events[4][0]).to.equal('addTrack');
+            expect(events[4][2]).to.equal(stream.getTracks()[1].kind + ':' + stream.getTracks()[1].id + ' -');
         });
     });
 });
