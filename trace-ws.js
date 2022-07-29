@@ -11,9 +11,11 @@ const PROTOCOL_ITERATION = '3.1';
  * @param {*} onCloseCallback
  * @param {*} pingInterval
  */
-export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true, pingInterval = 30000 }) {
-    const buffer = [];
-    const statsSessionId = uuidv4();
+export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfuscate = true, pingInterval = 30000 }) {
+    // Parent stats session id, used when breakout rooms occur to keep track of the initial stats session id.
+    let parentStatsSessionId;
+    let buffer = [];
+    let statsSessionId = uuidv4();
     let connection;
     let keepAliveInterval;
 
@@ -22,10 +24,8 @@ export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true
     const protocolVersion = useLegacy ? `${PROTOCOL_ITERATION}_LEGACY` : `${PROTOCOL_ITERATION}_STANDARD`;
 
     const trace = function(msg) {
-        const serializedMsg = JSON.stringify(msg);
-
         if (connection && (connection.readyState === WebSocket.OPEN)) {
-            connection.send(serializedMsg);
+            connection.send(JSON.stringify(msg));
         } else if (connection && (connection.readyState >= WebSocket.CLOSING)) {
             // no-op
         } else if (buffer.length < 300) {
@@ -33,13 +33,16 @@ export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true
             // without the data from the initial calls the server wouldn't know how to decompress.
             // Ideally we wouldn't reach this limit as the connect should fairly soon after the PC init, but just
             // in case add a limit to the buffer, so we don't transform this into a memory leek.
-            buffer.push(serializedMsg);
+            buffer.push(msg);
         }
     };
 
     trace.identity = function(...data) {
-
         data.push(new Date().getTime());
+
+        if (parentStatsSessionId) {
+            data[2].parentStatsSessionId = parentStatsSessionId;
+        }
 
         const identityMsg = {
             statsSessionId,
@@ -66,7 +69,6 @@ export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true
         trace(statsEntryMsg);
     };
 
-
     trace.keepAlive = function() {
 
         const keepaliveMsg = {
@@ -76,17 +78,34 @@ export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true
 
         trace(keepaliveMsg);
     };
+
     trace.close = function() {
         connection && connection.close();
     };
-    trace.connect = function() {
+
+    trace.connect = function(isBreakoutRoom) {
     // Because the connect function can be deferred now, we don't want to clear the buffer on connect so that
     // we don't lose queued up operations.
     // buffer = [];
+        if (isBreakoutRoom && !parentStatsSessionId) {
+            parentStatsSessionId = statsSessionId;
+        }
+        if (parentStatsSessionId) {
+            statsSessionId = uuidv4();
+            buffer.forEach(entry => {
+                entry.statsSessionId = statsSessionId;
+            });
+        }
         if (connection) {
             connection.close();
         }
-        connection = new WebSocket(endpoint + window.location.pathname, protocolVersion);
+
+        connection = new WebSocket(
+            `${endpoint}/${meetingFqn}`,
+            protocolVersion,
+            { headers: { 'User-Agent': navigator.userAgent } }
+        );
+
 
         connection.onclose = function(closeEvent) {
             keepAliveInterval && clearInterval(keepAliveInterval);
@@ -98,6 +117,7 @@ export default function({ endpoint, onCloseCallback, useLegacy, obfuscate = true
 
         connection.onopen = function() {
             keepAliveInterval = setInterval(trace.keepAlive, pingInterval);
+            buffer = buffer.map(entry => JSON.stringify(entry));
 
             while (buffer.length) {
                 // Buffer contains serialized msg's so no need to stringify

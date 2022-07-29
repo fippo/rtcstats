@@ -143,9 +143,10 @@ export default function(
     const isSafari = browserDetection.isSafari();
     const isChrome = browserDetection.isChrome();
     const isElectron = browserDetection.isElectron();
+    const isReactNative = browserDetection.isReactNative();
 
     // Only initialize rtcstats if it's run in a supported browser
-    if (!(isFirefox || isSafari || isChrome || isElectron)) {
+    if (!(isFirefox || isSafari || isChrome || isElectron || isReactNative)) {
         throw new Error('RTCStats unsupported browser.');
     }
 
@@ -247,7 +248,7 @@ export default function(
                 let prev = {};
 
                 const getStats = function() {
-                    if (isFirefox || isSafari || ((isChrome || isElectron) && !useLegacy)) {
+                    if (isFirefox || isSafari || isReactNative || ((isChrome || isElectron) && !useLegacy)) {
                         pc.getStats(null).then(res => {
                             const now = map2obj(res);
                             const base = JSON.parse(JSON.stringify(now)); // our new prev
@@ -275,7 +276,7 @@ export default function(
                 //    we have to collect results anyway so...
                 if (pollInterval) {
                     const interval = window.setInterval(() => {
-                        if (pc.signalingState === 'closed') {
+                        if (pc.signalingState === 'closed' || pc.iceConnectionState === 'closed') {
                             window.clearInterval(interval);
 
                             return;
@@ -285,7 +286,7 @@ export default function(
                 }
 
                 pc.addEventListener('connectionstatechange', () => {
-                    if (['connected', 'failed'].includes(pc.connectionState)) {
+                    if ([ 'connected', 'failed' ].includes(pc.connectionState)) {
                         getStats();
                     }
                 });
@@ -498,7 +499,7 @@ export default function(
                                 console.error(`RTCStats ${method} promise success bind failed: `, error);
                             }
 
-                            if (!this.__dtlsTransport && method.endsWith('Description')) {
+                            if (!this.__dtlsTransport && method.endsWith('Description') && !isReactNative) {
                                 this.getSenders().forEach(sender => {
                                     if (!this.__dtlsTransport && sender.transport) {
                                         this.__dtlsTransport = sender.transport;
