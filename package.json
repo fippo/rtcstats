@@ -5,6 +5,7 @@
   "main": "rtcstats.js",
   "types": "rtcstats.d.ts",
   "devDependencies": {
+    "c8": "^7.12.0",
     "chai": "^4.3.6",
     "eslint": "^6.8.0",
     "eslint-plugin-require-path-exists": "^1.1.9",
@@ -18,7 +19,7 @@
     "travis-multirunner": "^4.5.0"
   },
   "scripts": {
-    "test": "karma start test/karma.conf.js"
+    "test": "c8 karma start test/karma.conf.js"
   },
   "repository": {
     "type": "git",
