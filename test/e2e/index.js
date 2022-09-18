@@ -167,6 +167,19 @@ describe('RTCPeerConnection', () => {
             expect(events[4][2]).to.equal(stream.getTracks()[1].kind + ':' + stream.getTracks()[1].id + ' -');
         });
     });
+
+    describe('addStream', () => {
+        it('serializes the stream in the expected format', async () => {
+            const pc = new RTCPeerConnection();
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+            pc.addStream(stream);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(4);
+            expect(events[3][0]).to.equal('addStream');
+            expect(events[3][2]).to.equal(stream.id + ' ' + stream.getTracks().map(t => t.kind + ':' + t.id).join(','));
+        });
+    });
 });
 
 describe('getUserMedia and getDisplayMedia', () => {
