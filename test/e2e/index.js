@@ -180,6 +180,34 @@ describe('RTCPeerConnection', () => {
             expect(events[3][2]).to.equal(stream.id + ' ' + stream.getTracks().map(t => t.kind + ':' + t.id).join(','));
         });
     });
+
+    describe('removeTrack', () => {
+        it('serializes the stream in the expected format', async () => {
+            const pc = new RTCPeerConnection();
+            const stream = await navigator.mediaDevices.getUserMedia({video: true});
+            const track = stream.getTracks()[0];
+            const sender = pc.addTrack(track, stream);
+            pc.removeTrack(sender);
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(5);
+            expect(events[4][0]).to.equal('removeTrack');
+            expect(events[4][2]).to.equal(track.kind + ':' + track.id);
+        });
+    });
+
+    describe('close', () => {
+        it('serializes the channel in the expected format', async () => {
+            const pc = new RTCPeerConnection();
+            pc.close();
+
+            const events = testSink.reset();
+            expect(events.length).to.equal(2);
+            expect(events[1][0]).to.equal('close');
+            // TODO: how to deal with raw arguments array (also for datachannel)?
+            // expect(events[1][2]).to.equal(undefined);
+        });
+    });
 });
 
 describe('getUserMedia and getDisplayMedia', () => {
