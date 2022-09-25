@@ -208,6 +208,36 @@ describe('RTCPeerConnection', () => {
             // expect(events[1][2]).to.equal(undefined);
         });
     });
+
+    describe('event handlers', () => {
+        it('serializes ONN, signalingstatechange and the candidate', async () => {
+            const pc = new RTCPeerConnection();
+            const gathered = new Promise(resolve => {
+                pc.onicecandidate = (e) => {
+                    pc.onicecandidate = null;
+                    resolve(e.candidate);
+                };;
+            });
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            pc.addTrack(stream.getTracks()[0], stream);
+            const offer = await pc.createOffer({offerToReceiveAudio: true});
+            await pc.setLocalDescription(offer);
+            const candidate = await gathered;
+
+            const events = testSink.reset();
+            const candidateEvent = events.find(e => e[0] === 'onicecandidate');
+            expect(candidateEvent[0]).to.equal('onicecandidate');
+            expect(candidateEvent[2]).to.equal(candidate);
+
+            const onnEvent = events.find(e => e[0] == 'onnegotiationneeded');
+            expect(onnEvent[0]).to.equal('onnegotiationneeded');
+            expect(onnEvent[2]).to.equal(undefined);
+
+            const signalingStateChangeEvent = events.find(e => e[0] == 'onsignalingstatechange');
+            expect(signalingStateChangeEvent[0]).to.equal('onsignalingstatechange');
+            expect(signalingStateChangeEvent[2]).to.equal('have-local-offer');
+        });
+    });
 });
 
 describe('getUserMedia and getDisplayMedia', () => {
