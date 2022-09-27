@@ -55,15 +55,31 @@ export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfu
 
     trace.statsEntry = function(...data) {
 
-        // Obfuscate the ips is required.
-        obfuscate && obfuscator(data);
+        let myData = data;
 
-        data.push(new Date().getTime());
+        if (obfuscate) {
+            switch (data[0]) {
+            case 'addIceCandidate':
+            case 'setLocalDescription':
+            case 'setRemoteDescription':
+                // These functions need to original values to work with
+                // so we need a deep copy to do the obfuscation on.
+                myData = JSON.parse(JSON.stringfy(myData));
+                break;
+            default:
+                break;
+            }
+
+            // Obfuscate the ips is required.
+            obfuscator(myData);
+        }
+
+        myData.push(new Date().getTime());
 
         const statsEntryMsg = {
             statsSessionId,
             type: 'stats-entry',
-            data: JSON.stringify(data)
+            data: JSON.stringify(myData)
         };
 
         trace(statsEntryMsg);
