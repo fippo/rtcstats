@@ -1,6 +1,24 @@
 import {wrapWebRTC} from '../../rtcstats.js';
 import {createTestSink} from '../sink.js';
 
+const sdp = `v=0
+o=- 0 3 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=fingerprint:sha-256 A7:24:72:CA:6E:02:55:39:BA:66:DF:6E:CC:4C:D8:B0:1A:BF:1A:56:65:7D:F4:03:AD:7E:77:43:2A:29:EC:93
+a=ice-ufrag:6HHHdzzeIhkE0CKj
+a=ice-pwd:XYDGVpfvklQIEnZ6YnyLsAew
+m=audio 9 RTP/SAVPF 111
+c=IN IP4 0.0.0.0
+a=rtcp-mux
+a=sendonly
+a=mid:audio
+a=rtpmap:111 opus/48000/2
+a=setup:actpass
+a=msid:streamid trackid 
+`;
+const candidateSdp = 'a=candidate:1595511860 1 udp 2122262783 127.0.0.1 36538 typ host generation 0 ufrag HjHI\r\n';
+
 let rtcStats;
 let testSink;
 before(() => {
@@ -197,7 +215,7 @@ describe('RTCPeerConnection', () => {
     });
 
     describe('close', () => {
-        it('serializes the channel in the expected format', async () => {
+        it('serializes the event in the expected format', async () => {
             const pc = new RTCPeerConnection();
             pc.close();
 
@@ -210,18 +228,45 @@ describe('RTCPeerConnection', () => {
     });
 
     describe('event handlers', () => {
-        it('serializes ONN, signalingstatechange and the candidate', async () => {
+        it('serializes signalingstatechange', async () => {
             const pc = new RTCPeerConnection();
+            // offer without m-lines, intentionally.
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            const events = testSink.reset();
+
+            const ev = events.find(e => e[0] == 'onsignalingstatechange');
+            expect(ev[0]).to.equal('onsignalingstatechange');
+            expect(ev[2]).to.equal('have-local-offer');
+        });
+
+        it('serializes negotiationneeded', async () => {
+            const pc = new RTCPeerConnection();
+            const onn = new Promise(resolve => {
+                pc.onnegotiationneeded = () => {
+                    pc.onnegotiationneeded = null;
+                    resolve();
+                };
+            });
+            pc.createDataChannel('somechannel');
+            await onn
+
+            const events = testSink.reset();
+            const ev = events.find(e => e[0] == 'onnegotiationneeded');
+            expect(ev[0]).to.equal('onnegotiationneeded');
+            expect(ev[2]).to.equal(undefined);
+        });
+
+        it('serializes icecandidate and icegatheringstatechange', async () => {
+            const pc = new RTCPeerConnection();
+            pc.createDataChannel('somechannel');
             const gathered = new Promise(resolve => {
                 pc.onicecandidate = (e) => {
                     pc.onicecandidate = null;
                     resolve(e.candidate);
-                };;
+                };
             });
-            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            pc.addTrack(stream.getTracks()[0], stream);
-            const offer = await pc.createOffer({offerToReceiveAudio: true});
-            await pc.setLocalDescription(offer);
+            await pc.setLocalDescription();
             const candidate = await gathered;
 
             const events = testSink.reset();
@@ -229,13 +274,40 @@ describe('RTCPeerConnection', () => {
             expect(candidateEvent[0]).to.equal('onicecandidate');
             expect(candidateEvent[2]).to.equal(candidate);
 
-            const onnEvent = events.find(e => e[0] == 'onnegotiationneeded');
-            expect(onnEvent[0]).to.equal('onnegotiationneeded');
-            expect(onnEvent[2]).to.equal(undefined);
+            const gatheringEvent = events.find(e => e[0] === 'onicegatheringstatechange');
+            expect(gatheringEvent[0]).to.equal('onicegatheringstatechange');
+            expect(gatheringEvent[2]).to.equal('gathering');
+        });
 
-            const signalingStateChangeEvent = events.find(e => e[0] == 'onsignalingstatechange');
-            expect(signalingStateChangeEvent[0]).to.equal('onsignalingstatechange');
-            expect(signalingStateChangeEvent[2]).to.equal('have-local-offer');
+        it('serializes iceconnectionstatechange', async () => {
+            const pc = new RTCPeerConnection();
+            const gathered = new Promise(resolve => {
+                pc.onicecandidate = (e) => {
+                    pc.onicecandidate = null;
+                    resolve(e.candidate);
+                };;
+            });
+            await pc.setRemoteDescription({type: 'offer', sdp: sdp + candidateSdp});
+            await pc.setLocalDescription();
+            const candidate = await gathered;
+            const events = testSink.reset();
+            const ev = events.find(e => e[0] === 'oniceconnectionstatechange');
+            expect(ev[0]).to.equal('oniceconnectionstatechange');
+            expect(ev[2]).to.equal('checking');
+        });
+
+        it('serializeѕ ontrack and onaddstream', async () => {
+            const pc = new RTCPeerConnection();
+            await pc.setRemoteDescription({type: 'offer', sdp});
+            const events = testSink.reset();
+            expect(events.length).to.equal(6);
+            const streamEvent = events.find(e => e[0] === 'onaddstream');
+            expect(streamEvent[0]).to.equal('onaddstream');
+            expect(streamEvent[2]).to.equal('streamid audio:trackid ');
+
+            const trackEvent = events.find(e => e[0] === 'ontrack');
+            expect(trackEvent[0]).to.equal('ontrack');
+            expect(trackEvent[2]).to.equal('audio:trackid  stream:streamid');
         });
     });
 });
