@@ -64,7 +64,7 @@ export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfu
             case 'setRemoteDescription':
                 // These functions need to original values to work with
                 // so we need a deep copy to do the obfuscation on.
-                myData = JSON.parse(JSON.stringfy(myData));
+                myData = JSON.parse(JSON.stringify(myData));
                 break;
             default:
                 break;
