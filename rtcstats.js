@@ -2,6 +2,8 @@
 /* eslint-disable no-param-reassign */
 import { BrowserDetection } from '@jitsi/js-utils/browser-detection';
 
+import { PC_CON_STATE_CHANGE, PC_ICE_CON_STATE_CHANGE } from './events';
+
 /**
  * transforms a maplike to an object. Mostly for getStats + JSON.parse(JSON.stringify())
  * @param {*} m
@@ -134,7 +136,12 @@ function dumpStream(stream) {
  */
 export default function(
         { statsEntry: sendStatsEntry },
-        { connectionFilter, pollInterval, useLegacy, sendSdp = false, prefixesToWrap = [ '' ] }
+        { connectionFilter,
+            pollInterval,
+            useLegacy,
+            sendSdp = false,
+            prefixesToWrap = [ '' ],
+            eventCallback }
 ) {
     let peerconnectioncounter = 0;
 
@@ -161,8 +168,13 @@ export default function(
             // does not affect the normal flow of any application that might integrate it.
             const origConfig = { ...config };
             const origConstraints = { ...constraints };
+            const { optional = [] } = constraints;
+            let isP2P = false;
 
             try {
+                // Verify if the connection is configured as P2P
+                optional.some(option => option.rtcStatsSFUP2P === true) && (isP2P = true);
+
                 const pc = new OrigPeerConnection(config, constraints);
 
                 // In case the client wants to skip some rtcstats connections, a filter function can be provided which
@@ -230,13 +242,33 @@ export default function(
                     sendStatsEntry('onsignalingstatechange', id, pc.signalingState);
                 });
                 pc.addEventListener('iceconnectionstatechange', () => {
-                    sendStatsEntry('oniceconnectionstatechange', id, pc.iceConnectionState);
+                    const { iceConnectionState } = pc;
+
+                    sendStatsEntry('oniceconnectionstatechange', id, iceConnectionState);
+                    eventCallback?.({
+                        type: PC_ICE_CON_STATE_CHANGE,
+                        body: {
+                            pcId: id,
+                            isP2P,
+                            state: iceConnectionState
+                        }
+                    });
                 });
                 pc.addEventListener('icegatheringstatechange', () => {
                     sendStatsEntry('onicegatheringstatechange', id, pc.iceGatheringState);
                 });
                 pc.addEventListener('connectionstatechange', () => {
+                    const { connectionState } = pc;
+
                     sendStatsEntry('onconnectionstatechange', id, pc.connectionState);
+                    eventCallback?.({
+                        type: PC_CON_STATE_CHANGE,
+                        body: {
+                            pcId: id,
+                            isP2P,
+                            state: connectionState
+                        }
+                    });
                 });
                 pc.addEventListener('negotiationneeded', () => {
                     sendStatsEntry('onnegotiationneeded', id, undefined);

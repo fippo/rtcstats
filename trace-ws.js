@@ -37,6 +37,18 @@ export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfu
         }
     };
 
+    trace.isConnected = function() {
+        const { readyState } = connection;
+
+        return readyState === WebSocket.OPEN;
+    };
+
+    trace.isClosed = function() {
+        const { readyState } = connection;
+
+        return readyState === WebSocket.CLOSED;
+    };
+
     trace.identity = function(...data) {
         data.push(new Date().getTime());
 
