@@ -138,11 +138,12 @@ export default function(data) {
     case 'onicecandidate':
         if (data[2] && data[2].candidate) {
 
+            let jsonRepr = data[2];
 
-            const jsonRepr = data[2].toJSON();
-
+            if (jsonRepr.toJSON) {
+                jsonRepr = jsonRepr.toJSON();
+            }
             jsonRepr.candidate = obfuscateCandidate(jsonRepr.candidate);
-
             data[2] = jsonRepr;
         }
         break;

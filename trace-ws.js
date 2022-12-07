@@ -72,6 +72,7 @@ export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfu
         if (obfuscate) {
             switch (data[0]) {
             case 'addIceCandidate':
+            case 'onicecandidate':
             case 'setLocalDescription':
             case 'setRemoteDescription':
                 // These functions need to original values to work with
