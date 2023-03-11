@@ -45,7 +45,7 @@ this will create the output in `./out/`
 #### require
 
 ```javascript
-const trace = require("rtcstats/trace-ws")("wss://rtcstats.appear.in"); // url-to-your-websocket-server
+const trace = require("rtcstats/trace-ws")("wss://rtcstats.myserver.com"); // url-to-your-websocket-server
 require("rtcstats")(
    trace,
    1000, // interval at which getStats will be polled.

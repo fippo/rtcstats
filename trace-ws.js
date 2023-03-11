@@ -1,5 +1,5 @@
-var PROTOCOL_VERSION = '2.0';
-module.exports = function(wsURL) {
+const PROTOCOL_VERSION = '2.0';
+export default function(wsURL) {
   var buffer;
   var connection;
   var trace = function() {

@@ -1,0 +1,73 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>Test page for rtcstats</title>
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+</head>
+<body>
+<h1>Test page for rtcstats</h1>
+<br>
+The browser version is: <span id="browserversion"></span>
+<video id="local" muted autoplay></video>
+<video id="remote" muted autoplay></video>
+<button id="camera">Connect with camera</button>
+<button id="screen">Connect with screen</button>
+<script type="module">
+  import RTCStats from '../rtcstats.js';
+  import RTCTrace from '../trace-ws.js';
+
+  const trace = RTCTrace("ws://localhost:9999");
+  RTCStats(trace, 10000);
+
+  async function connect(stream) {
+    document.getElementById('local').srcObject = stream;
+
+    const pc1 = new RTCPeerConnection({}, { optional: [
+      {rtcStatsClientId: "your client identifier"},
+      {rtcStatsPeerId: "identifier for the current peer"},
+      {rtcStatsConferenceId: "identifier for the conference, e.g. room name"}
+    ]});
+    const pc2 = new RTCPeerConnection({}, { optional: [
+      {rtcStatsClientId: "your client identifier"},
+      {rtcStatsPeerId: "identifier for the current peer"},
+      {rtcStatsConferenceId: "identifier for the conference, e.g. room name"}
+    ]});
+    stream.getTracks().forEach(track => pc1.addTrack(track, stream));
+    
+    pc2.ontrack = (event) => {
+      if (event.track.kind === 'video') {
+        document.getElementById('remote').srcObject = event.streams[0];
+      }
+    };
+    pc1.onicecandidate = (event) => {
+      if (event.candidate) {
+        pc2.addIceCandidate(event.candidate);
+      }
+    };
+    pc2.onicecandidate = (event) => {
+      if (event.candidate) {
+        pc1.addIceCandidate(event.candidate);
+      }
+    };
+    const offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+    const answer = await pc2.createAnswer();
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+  }
+
+  async function startWithCamera() {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    await connect(stream);
+  }
+  document.getElementById('camera').addEventListener('click', startWithCamera);
+
+  async function startWithScreen() {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    await connect(stream);
+  }
+  document.getElementById('screen').addEventListener('click', startWithScreen);
+</script>
+</body>
+</html>
