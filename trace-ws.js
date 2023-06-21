@@ -81,12 +81,20 @@ export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfu
     };
 
     trace.isConnected = function() {
+        if (!connection) {
+            return false;
+        }
+        
         const { readyState } = connection;
 
         return readyState === WebSocket.OPEN;
     };
 
     trace.isClosed = function() {
+        if (!connection) {
+            return true;
+        }
+
         const { readyState } = connection;
 
         return readyState === WebSocket.CLOSED;
