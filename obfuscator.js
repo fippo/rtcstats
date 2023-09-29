@@ -97,7 +97,7 @@ function obfuscateStats(stats) {
 
         // obfuscate different variants of how the ip is contained in different stats / versions.
         [ 'ipAddress', 'ip', 'address' ].forEach(address => {
-            if (report[address] && report.candidateType !== 'relayed') {
+            if (report[address] && report.candidateType !== 'relay') {
                 report[address] = obfuscateIP(report[address]);
             }
         });
