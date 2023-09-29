@@ -1,6 +1,9 @@
 /* eslint-disable prefer-rest-params */
 /* eslint-disable no-param-reassign */
 import { BrowserDetection } from '@jitsi/js-utils/browser-detection';
+import { getLogger } from '@jitsi/logger';
+
+const logger = getLogger('rtctstats');
 
 import { PC_CON_STATE_CHANGE, PC_ICE_CON_STATE_CHANGE } from './events';
 
@@ -147,14 +150,15 @@ export default function(
 
     const browserDetection = new BrowserDetection();
     const isFirefox = browserDetection.isFirefox();
-    const isSafari = browserDetection.isSafari();
-    const isChrome = browserDetection.isChrome();
-    const isElectron = browserDetection.isElectron();
+    const isChromiumBased = browserDetection.isChromiumBased();
+    const isWebKitBased = browserDetection.isWebKitBased();
     const isReactNative = browserDetection.isReactNative();
 
     // Only initialize rtcstats if it's run in a supported browser
-    if (!(isFirefox || isSafari || isChrome || isElectron || isReactNative)) {
-        throw new Error('RTCStats unsupported browser.');
+    if (!(isFirefox || isChromiumBased || isWebKitBased || isReactNative)) {
+        logger.warn('RTCStats unsupported browser.');
+
+        return;
     }
 
     prefixesToWrap.forEach(prefix => {
@@ -280,7 +284,7 @@ export default function(
                 let prev = {};
 
                 const getStats = function() {
-                    if (isFirefox || isSafari || isReactNative || ((isChrome || isElectron) && !useLegacy)) {
+                    if (isFirefox || isWebKitBased || isReactNative || ((isChromiumBased && !useLegacy))) {
                         pc.getStats(null).then(res => {
                             const now = map2obj(res);
                             const base = JSON.parse(JSON.stringify(now)); // our new prev
@@ -288,7 +292,7 @@ export default function(
                             sendStatsEntry('getstats', id, deltaCompression(prev, now));
                             prev = base;
                         });
-                    } else if (isChrome || isElectron) {
+                    } else if (isChromiumBased) {
                         // for chromium based env we have the option of using the chrome getstats api via the
                         // useLegacy flag.
                         pc.getStats(res => {

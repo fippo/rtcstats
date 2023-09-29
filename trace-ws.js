@@ -84,7 +84,6 @@ export default function({ endpoint, meetingFqn, onCloseCallback, useLegacy, obfu
         if (!connection) {
             return false;
         }
-        
         const { readyState } = connection;
 
         return readyState === WebSocket.OPEN;

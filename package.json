@@ -4,7 +4,8 @@
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "dependencies": {
-    "@jitsi/js-utils": "^2.0.0",
+    "@jitsi/js-utils": "^2.2.0",
+    "@jitsi/logger": "2.0.2",
     "sdp": "^3.0.3",
     "uuid": "^8.3.2"
   },
