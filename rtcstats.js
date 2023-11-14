@@ -167,11 +167,10 @@ export default function(
         }
 
         const OrigPeerConnection = window[`${prefix}RTCPeerConnection`];
-        const peerconnection = function(config, constraints) {
+        const peerconnection = function(config, constraints = {}) {
             // We want to make sure that any potential errors that occur at this point, caused by rtcstats logic,
             // does not affect the normal flow of any application that might integrate it.
             const origConfig = { ...config };
-            const origConstraints = { ...constraints };
             const { optional = [] } = constraints;
             let isP2P = false;
 
@@ -214,9 +213,7 @@ export default function(
                 // TODO: do we want to log constraints here? They are chrome-proprietary.
                 // eslint-disable-next-line max-len
                 // http://stackoverflow.com/questions/31003928/what-do-each-of-these-experimental-goog-rtcpeerconnectionconstraints-do
-                if (constraints) {
-                    sendStatsEntry('constraints', id, constraints);
-                }
+                sendStatsEntry('constraints', id, constraints);
 
                 pc.addEventListener('icecandidate', e => {
                     sendStatsEntry('onicecandidate', id, e.candidate);
@@ -332,7 +329,7 @@ export default function(
                 // If something went wrong, return a normal PeerConnection
                 console.error('RTCStats PeerConnection bind failed: ', error);
 
-                return new OrigPeerConnection(origConfig, origConstraints);
+                return new OrigPeerConnection(origConfig, constraints);
             }
         };
 
