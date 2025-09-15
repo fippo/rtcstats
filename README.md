@@ -1,3 +1,6 @@
+This repository is no longer maintained. See [here](https://github.com/rtcstats/rtcstats)
+for the current version.
+
 ## rtcstats.js
 Low-level logging on peerconnection API calls and periodic getStats calls for analytics/debugging purposes
 
